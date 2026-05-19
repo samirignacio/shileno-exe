@@ -1,7 +1,7 @@
 const SUPABASE_URL = "https://ofpdeqvoldmhbrhvnaga.supabase.co"; 
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mcGRlcXZvbGRtaGJyaHZuYWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNTA5NTksImV4cCI6MjA5NDcyNjk1OX0.HFuZ6AzQmY2-aBsLCAcMhLL0oss2QEwKeYToAO_0lg0";
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let gameState = {
     plata: 15000,
@@ -41,7 +41,7 @@ async function loadRandomEvent() {
     const tables = stageTables[currentStageKey];
 
     try {
-        const { data: eventsList, error: listError } = await supabase
+        const { data: eventsList, error: listError } = await db
             .from(tables.events)
             .select('id');
 
@@ -51,7 +51,7 @@ async function loadRandomEvent() {
         const randomElement = eventsList[Math.floor(Math.random() * eventsList.length)];
         const randomEventId = randomElement.id;
 
-        const { data: eventData, error: eventError } = await supabase
+        const { data: eventData, error: eventError } = await db
             .from(tables.events)
             .select('*')
             .eq('id', randomEventId)
@@ -59,7 +59,7 @@ async function loadRandomEvent() {
 
         if (eventError) throw eventError;
 
-        const { data: optionsData, error: optionsError } = await supabase
+        const { data: optionsData, error: optionsError } = await db
             .from(tables.options)
             .select('*')
             .eq('evento_id', randomEventId);
