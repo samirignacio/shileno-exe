@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sobrevive el Día - Test Motor</title>
+</head>
+<body>
+
+    <div id="stats-container" style="background: #f0f0f0; padding: 15px; margin-bottom: 20px;">
+        <h2>📊 Estado del Personaje</h2>
+        <p>🌅 Etapa Actual: <strong id="current-stage">MAÑANA</strong></p>
+        <p>💰 Cuenta RUT: $<span id="stat-plata">15000</span></p>
+        <p>🧠 Cordura: <span id="stat-cordura">100</span>/100</p>
+        <p>🤪 Delirio: <span id="stat-delirio">0</span>/100</p>
+        <p>🛡️ Vulnerabilidad: <span id="stat-vulnerable">0</span></p>
+    </div>
+
+    <div id="game-container" style="border: 2px dashed #ccc; padding: 20px; max-width: 600px;">
+        <h3 id="event-title">Cargando evento...</h3>
+        <p id="event-text" style="font-size: 1.1em;"></p>
+        <p id="event-subtext" style="font-style: italic; color: #666;"></p>
+
+        <div id="options-container" style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+            </div>
+    </div>
+
+    <div id="game-over-container" style="display: none; background: #ffe6e6; padding: 20px; text-align: center;">
+        <h1 id="game-over-title">FIN DEL JUEGO</h1>
+        <p id="game-over-text"></p>
+        <button onclick="location.reload()">Reintentar día</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+</body>
+</html>
