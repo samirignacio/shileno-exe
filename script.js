@@ -1,7 +1,6 @@
 const SUPABASE_URL = "https://ofpdeqvoldmhbrhvnaga.supabase.co"; 
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mcGRlcXZvbGRtaGJyaHZuYWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNTA5NTksImV4cCI6MjA5NDcyNjk1OX0.HFuZ6AzQmY2-aBsLCAcMhLL0oss2QEwKeYToAO_0lg0";
 
-// Cambiamos el nombre de la variable local a 'db' para evitar el SyntaxError con el CDN
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let gameState = {
@@ -41,19 +40,18 @@ function setPlayerSprite(spriteFromDatabase = null) {
     const spriteImg = document.getElementById('player-sprite');
     if (!spriteImg) return;
 
-    // Si la cordura llega a 0, muere automáticamente (PNG)
     if (gameState.cordura <= 0) {
         spriteImg.src = "assets/player-muerto.png";
         return;
     }
 
-    // Si el evento actual trae un sprite específico desde Supabase, se usa directamente
     if (spriteFromDatabase) {
-        spriteImg.src = `assets/${spriteFromDatabase}`;
+        // Corrección dinámica: Reemplaza .jpg por .png si viene mal desde Supabase
+        let cleanSprite = spriteFromDatabase.replace(/\.jpg$/i, '.png');
+        spriteImg.src = `assets/${cleanSprite}`;
         return;
     }
 
-    // Estados pasivos automáticos según estadísticas (Todos PNG)
     if (gameState.plata <= 0 || gameState.cordura <= 30) {
         spriteImg.src = "assets/player-derrotado.png";
     } else if (gameState.delirio >= 70) {
@@ -107,7 +105,6 @@ function renderEvent(event, options) {
     document.getElementById('event-text').innerText = event.texto;
     document.getElementById('event-subtext').innerText = event.letra_chica ? `(${event.letra_chica})` : '';
 
-    // Llama al sprite dinámico guardado en la base de datos
     setPlayerSprite(event.sprite);
 
     const optionsContainer = document.getElementById('options-container');
@@ -133,7 +130,6 @@ function handleDecision(option) {
 
     updateUIStats();
 
-    // Reacciones visuales inmediatas según la gravedad de tu elección (Todas PNG)
     let reactionPose = null;
     if (option.efecto_cordura < -15) reactionPose = "player-esquizo.png";
     else if (option.efecto_plata < -5000) reactionPose = "player-derrotado.png";
