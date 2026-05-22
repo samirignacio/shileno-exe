@@ -1,50 +1,52 @@
 body {
     background-color: #d1d5db;
-    background-image: 
-        linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
-    background-size: 20px 20px;
+    background-image: url('assets/fondo-mobile.png') !important;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
     font-family: 'Courier New', Courier, monospace;
     color: #222;
     margin: 0;
-    padding: 20px;
+    padding: 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
     min-height: 100vh;
+    box-sizing: border-box;
 }
 
 #main-layout {
     display: flex;
-    flex-direction: row;
-    gap: 30px;
+    flex-direction: column;
+    gap: 20px;
     max-width: 1100px;
     width: 100%;
-    margin-top: 20px;
-    align-items: flex-start;
+    margin-top: 10px;
+    align-items: center;
 }
 
 #stats-container {
     background: #faf8f5;
     border: 1px solid #c8b9a6;
     box-shadow: 5px 5px 0px rgba(0,0,0,0.15);
-    padding: 20px;
-    width: 280px;
-    transform: rotate(-1deg);
+    padding: 15px;
+    width: 100%;
+    max-width: 340px;
+    box-sizing: border-box;
     position: relative;
 }
 
 #stats-container h2 {
-    font-size: 1.2em;
+    font-size: 1.1em;
     border-bottom: 2px dashed #999;
     padding-bottom: 5px;
     margin-top: 0;
 }
 
 #stats-container p {
-    margin: 12px 0;
-    font-size: 0.95em;
+    margin: 8px 0;
+    font-size: 0.9em;
 }
 
 #character-container {
@@ -56,14 +58,10 @@ body {
 }
 
 #player-sprite {
-    max-height: 380px;
+    max-height: 280px;
     width: auto;
-    filter: drop-shadow(8px 8px 0px rgba(0, 0, 0, 0.15));
-    transition: transform 0.2s ease-in-out;
-}
-
-#player-sprite:hover {
-    transform: scale(1.02) rotate(1deg);
+    max-width: 100%;
+    filter: drop-shadow(6px 6px 0px rgba(0, 0, 0, 0.15));
 }
 
 #game-container {
@@ -72,39 +70,41 @@ body {
     border-top: 1px solid #ccc;
     border-right: 1px solid #ccc;
     border-bottom: 1px solid #ccc;
-    box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.1);
-    padding: 25px;
-    flex: 1;
-    transform: rotate(1deg);
+    box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 #event-title {
     text-transform: uppercase;
     color: #cc3333;
-    font-size: 1.3em;
+    font-size: 1.1em;
     margin-top: 0;
     letter-spacing: 1px;
 }
 
 #event-text {
-    line-height: 1.5;
-    font-size: 1.1em;
+    line-height: 1.4;
+    font-size: 1em;
     background: #fffdf5;
-    padding: 15px;
+    padding: 12px;
     border: 1px dashed #d1c7bd;
+    margin-bottom: 10px;
 }
 
 #event-subtext {
     color: #777;
-    font-size: 0.85em;
+    font-size: 0.8em;
     text-align: right;
+    margin-top: 0;
 }
 
 #options-container {
-    margin-top: 25px;
+    margin-top: 20px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
 }
 
 .option-btn {
@@ -113,35 +113,25 @@ body {
     border-bottom: 3px solid #d4c779;
     color: #333;
     font-family: inherit;
-    font-size: 1em;
+    font-size: 0.95em;
     font-weight: bold;
-    padding: 15px 20px;
+    padding: 12px 15px;
     text-align: left;
     cursor: pointer;
-    transition: all 0.1s ease;
-    box-shadow: 3px 3px 0px rgba(0,0,0,0.05);
-}
-
-.option-btn:hover {
-    background: #fffced;
-    transform: translateY(-2px);
-    box-shadow: 4px 4px 0px rgba(0,0,0,0.1);
-}
-
-.option-btn:active {
-    transform: translateY(1px);
-    box-shadow: 1px 1px 0px rgba(0,0,0,0.05);
+    box-sizing: border-box;
+    width: 100%;
 }
 
 #game-over-container {
-    max-width: 500px;
-    width: 100%;
+    max-width: 90%;
+    width: 450px;
     background: #ffe6e6;
     border: 3px double #ff3333;
-    box-shadow: 10px 10px 0px rgba(0,0,0,0.2);
-    padding: 30px;
+    box-shadow: 6px 6px 0px rgba(0,0,0,0.2);
+    padding: 20px;
     text-align: center;
-    margin-top: 50px;
+    margin-top: 30px;
+    box-sizing: border-box;
 }
 
 #game-over-container button {
@@ -154,6 +144,31 @@ body {
     font-weight: bold;
 }
 
-#game-over-container button:hover {
-    background: #ff3333;
+/* --- DETECCIÓN DE PANTALLAS GRANDES (PC / TABLET HORIZONTAL) --- */
+@media (min-width: 768px) {
+    body {
+        padding: 20px;
+        background-image: url('assets/fondo-desktop.png') !important;
+    }
+    #main-layout {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 30px;
+        margin-top: 20px;
+    }
+    #stats-container {
+        width: 280px;
+        transform: rotate(-1deg);
+    }
+    #player-sprite {
+        max-height: 380px;
+    }
+    #game-container {
+        flex: 1;
+        transform: rotate(1deg);
+        padding: 25px;
+    }
+    #event-title { font-size: 1.3em; }
+    #event-text { font-size: 1.1em; padding: 15px; }
+    .option-btn { font-size: 1em; padding: 15px 20px; }
 }
