@@ -3,7 +3,6 @@ html, body {
     margin: 0;
     padding: 0;
     width: 100%;
-    /* 100svh bloquea el alto exacto de la pantalla útil excluyendo las barras móviles */
     height: 100vh;
     height: 100svh; 
     overflow: hidden; 
@@ -21,28 +20,28 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     padding: 10px;
 }
 
-/* --- CONTENEDOR ELÁSTICO RESPONSIVE --- */
+/* --- CONTENEDOR CENTRAL (ESTILO COLUMNA VERTICAL UNIFICADA) --- */
 #main-layout {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     width: 100%;
-    max-width: 450px;
-    /* Le descuenta el espacio aproximado que ocupa el footer inferior de los anuncios */
-    height: calc(100% - 130px); 
+    max-width: 450px; /* Mantiene el juego como una app móvil al centro de la pantalla en PC */
+    height: calc(100% - 140px); 
     overflow-y: auto;
-    padding-bottom: 5px;
+    padding-bottom: 10px;
 }
 
-/* --- SECCIONES INTERNES --- */
+/* --- SECCIONES INTERNAS --- */
 .game-sidebar {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    width: 100%;
 }
 
 .stats-panel {
@@ -52,7 +51,7 @@ body {
     box-shadow: 4px 4px 0px #222;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 5px;
+    gap: 8px;
 }
 
 .stat-box {
@@ -68,7 +67,7 @@ body {
     justify-content: center;
     align-items: center;
     padding: 10px;
-    height: 140px;
+    height: 120px;
 }
 
 #player-sprite {
@@ -77,11 +76,17 @@ body {
 }
 
 /* --- TARJETA DE NARRATIVA --- */
+.game-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
 .card-container {
     background: #fff;
     border: 2px solid #222;
     box-shadow: 4px 4px 0px #222;
-    margin-top: 5px;
 }
 
 .card-header {
@@ -114,13 +119,12 @@ body {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-top: 10px;
 }
 
 .option-btn {
     background: #f3f4f6;
     border: 2px solid #222;
-    padding: 10px;
+    padding: 12px 10px;
     font-family: inherit;
     font-size: 0.9em;
     text-align: left;
@@ -140,7 +144,7 @@ body {
     box-shadow: 1px 1px 0px #222;
 }
 
-/* --- INTERFAZ MONETIZACIÓN BAJO EL JUEGO --- */
+/* --- INTERFAZ MONETIZACIÓN INFERIOR --- */
 #monetization-footer {
     width: 100%;
     max-width: 450px;
@@ -149,15 +153,16 @@ body {
     align-items: center;
     gap: 8px;
     margin-top: auto;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 8px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 10px;
     border-top: 2px dashed #222;
     box-sizing: border-box;
+    z-index: 10;
 }
 
 .ads-clean-banner {
     width: 100%;
-    min-height: 50px; /* Alto estándar para banners móviles modernos (320x50) */
+    min-height: 50px;
     background: #f9fafb;
     border: 1px dashed #9ca3af;
     display: flex;
@@ -191,44 +196,12 @@ body {
     background: #16a34a;
 }
 
-/* --- REGLAS EXCLUSIVAS PARA COMPUTADOR (DESKTOP) --- */
+/* --- RESPONSIVE PARA PANTALLAS GRANDES (Mantiene el layout compacto de celular al centro) --- */
 @media (min-width: 768px) {
-    html, body {
-        overflow: auto;
-        height: auto;
-    }
     body {
-        justify-content: flex-start;
-        padding: 30px;
+        padding-top: 30px;
     }
     #main-layout {
-        flex-direction: row;
-        align-items: flex-start;
-        gap: 25px;
-        max-width: 900px;
-        height: auto;
-        overflow: visible;
-    }
-    .game-sidebar {
-        width: 250px;
-        flex-shrink: 0;
-    }
-    .game-content {
-        flex-grow: 1;
-    }
-    .stats-panel {
-        grid-template-columns: 1fr;
-    }
-    #monetization-footer {
-        max-width: 900px;
-        margin-top: 40px;
-        background: transparent;
-        border-top: 2px dashed #222;
-    }
-    .ads-clean-banner {
-        min-height: 90px; /* En PC se expande automáticamente a formato banner horizontal 728x90 */
-    }
-    .cafecito-btn {
-        width: auto;
+        height: calc(100vh - 200px); /* Ajuste dinámico de altura para monitores */
     }
 }
