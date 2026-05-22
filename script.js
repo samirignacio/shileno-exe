@@ -27,16 +27,19 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function updateUIStats() {
-    document.getElementById('stat-plata').innerText = gameState.plata;
-    document.getElementById('stat-cordura').innerText = gameState.cordura;
-    document.getElementById('stat-delirio').innerText = gameState.delirio;
-    document.getElementById('stat-vulnerable').innerText = gameState.vulnerable;
+    // Parcheado con las IDs exactas del nuevo index.html
+    if(document.getElementById('stat-plata')) document.getElementById('stat-plata').innerText = `$${gameState.plata}`;
+    if(document.getElementById('stat-cordura')) document.getElementById('stat-cordura').innerText = gameState.cordura;
+    if(document.getElementById('stat-delirio')) document.getElementById('stat-delirio').innerText = gameState.delirio;
+    if(document.getElementById('stat-vulnerable')) document.getElementById('stat-vulnerable').innerText = gameState.vulnerable;
     
     const currentStageKey = gameState.stages[gameState.currentStageIndex];
     if (currentStageKey) {
-        // Muestra la etapa real y el progreso interno (ej: ☀️ MEDIODÍA (2/3))
-        document.getElementById('current-stage').innerText = 
-            `${stageTables[currentStageKey].label} (${gameState.eventsInCurrentStage + 1}/3)`;
+        const stageLabelElement = document.getElementById('game-stage');
+        if (stageLabelElement) {
+            // Muestra la etapa real y el progreso interno sin romper el layout (ej: ☀️ MEDIODÍA 2/3)
+            stageLabelElement.innerText = `${stageTables[currentStageKey].label} (${gameState.eventsInCurrentStage + 1}/3)`;
+        }
     }
 }
 
@@ -45,7 +48,6 @@ function setPlayerSprite(spriteFromDatabase = null) {
     if (!spriteImg) return;
 
     // 1. EVALUACIÓN DE INESTABILIDAD (Activa el glitch por CSS)
-    // Si el delirio es mayor a 50 o la cordura baja de 40, el sprite empieza a romperse de forma interactiva
     if (gameState.delirio > 50 || gameState.cordura < 40) {
         spriteImg.classList.add('glitch-active');
     } else {
@@ -54,24 +56,24 @@ function setPlayerSprite(spriteFromDatabase = null) {
 
     // 2. VERIFICACIÓN DE FIN DEL JUEGO
     if (gameState.cordura <= 0) {
-        spriteImg.src = "assets/player-muerto.png";
+        spriteImg.src = "player-muerto.png";
         spriteImg.classList.remove('glitch-active');
         return;
     }
 
     // 3. CARGA DINÁMICA: Si Supabase trae un asset específico, se renderiza ese inmediatamente
     if (spriteFromDatabase) {
-        spriteImg.src = `assets/${spriteFromDatabase}`;
+        spriteImg.src = spriteFromDatabase;
         return;
     }
 
-    // 4. RESPALDOS AUTOMÁTICOS PASIVOS (Por si la celda de Supabase viene vacía o NULL)
+    // 4. RESPALDOS AUTOMÁTICOS PASIVOS (Raíz limpia sin la carpeta assets/ obsoleta)
     if (gameState.plata <= 0 || gameState.cordura <= 30) {
-        spriteImg.src = "assets/player-derrotado.png";
+        spriteImg.src = "player-derrotado.png";
     } else if (gameState.delirio >= 70) {
-        spriteImg.src = "assets/player-esquizo.png";
+        spriteImg.src = "player-esquizo.png";
     } else {
-        spriteImg.src = "assets/player-normal.png";
+        spriteImg.src = "player-normal.png";
     }
 }
 
@@ -109,29 +111,33 @@ async function loadRandomEvent() {
 
     } catch (err) {
         console.error("Error Supabase:", err.message);
-        document.getElementById('event-title').innerText = "🚨 Error de conexión";
+        const txtEvent = document.getElementById('event-text');
+        if (txtEvent) txtEvent.innerText = "🚨 Error de conexión con Supabase. Revisa las tablas.";
     }
 }
 
 function renderEvent(event, options) {
-    const currentStageKey = gameState.stages[gameState.currentStageIndex].toUpperCase();
-    document.getElementById('event-title').innerText = `Evento de la ${currentStageKey}`;
-    document.getElementById('event-text').innerText = event.texto;
-    document.getElementById('event-subtext').innerText = event.letra_chica ? `(${event.letra_chica})` : '';
+    // Ajustado para imprimir la narrativa directo en la tarjeta limpia
+    const txtEvent = document.getElementById('event-text');
+    const txtSub = document.getElementById('event-subtext');
+
+    if (txtEvent) txtEvent.innerText = event.texto;
+    if (txtSub) txtSub.innerText = event.letra_chica ? `(${event.letra_chica})` : '';
 
     // Asigna el asset guardado en la fila limpia de Supabase
     setPlayerSprite(event.sprite);
 
     const optionsContainer = document.getElementById('options-container');
-    optionsContainer.innerHTML = '';
-
-    options.forEach(op => {
-        const btn = document.createElement('button');
-        btn.className = "option-btn";
-        btn.innerText = op.texto_opcion;
-        btn.onclick = () => handleDecision(op);
-        optionsContainer.appendChild(btn);
-    });
+    if (optionsContainer) {
+        optionsContainer.innerHTML = '';
+        options.forEach(op => {
+            const btn = document.createElement('button');
+            btn.className = "option-btn";
+            btn.innerText = op.texto_opcion;
+            btn.onclick = () => handleDecision(op);
+            optionsContainer.appendChild(btn);
+        });
+    }
 }
 
 function handleDecision(option) {
@@ -186,17 +192,32 @@ function handleDecision(option) {
 }
 
 function triggerGameOver(mensaje) {
-    document.getElementById('main-layout').style.display = 'none';
-    document.getElementById('game-over-container').style.display = 'block';
-    document.getElementById('game-over-title').innerText = "💀 GAME OVER";
-    document.getElementById('game-over-text').innerText = mensaje;
+    const layout = document.getElementById('main-layout');
+    if (layout) {
+        // Reutilizamos el contenedor inyectando el estado de muerte limpio estilo retro
+        layout.innerHTML = `
+            <div class="card-container" style="border: 2px solid #ef4444; margin-top:20px;">
+                <div class="card-header" style="background:#ef4444;">💀 GAME OVER</div>
+                <div class="card-body">
+                    <p style="font-size:1.1em; line-height:1.4;">${mensaje}</p>
+                    <button class="option-btn" style="margin-top:15px; text-align:center; width:100%;" onclick="location.reload()">🔄 Reintentar desafío</button>
+                </div>
+            </div>
+        `;
+    }
 }
 
 function triggerVictory() {
-    document.getElementById('main-layout').style.display = 'none';
-    document.getElementById('game-over-container').style.display = 'block';
-    document.getElementById('game-over-container').style.background = '#e6ffe6';
-    document.getElementById('game-over-container').style.border = '3px double #22c55e';
-    document.getElementById('game-over-title').innerText = "🏆 ¡SOBREVIVISTE!";
-    document.getElementById('game-over-text').innerText = `Lograste llegar al amanecer del día siguiente manteniendo un saldo de $${gameState.plata} en tu Cuenta RUT. El desempleo aún no te destruye.`;
+    const layout = document.getElementById('main-layout');
+    if (layout) {
+        layout.innerHTML = `
+            <div class="card-container" style="border: 2px solid #22c55e; margin-top:20px;">
+                <div class="card-header" style="background:#22c55e;">🏆 ¡SOBREVIVISTE!</div>
+                <div class="card-body">
+                    <p style="font-size:1.1em; line-height:1.4;">Lograste llegar al amanecer del día siguiente manteniendo un saldo de $${gameState.plata} en tu Cuenta RUT. El desempleo aún no te destruye.</p>
+                    <button class="option-btn" style="margin-top:15px; text-align:center; width:100%;" onclick="location.reload()">🎮 Jugar de nuevo</button>
+                </div>
+            </div>
+        `;
+    }
 }
