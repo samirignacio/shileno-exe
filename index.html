@@ -2,44 +2,59 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sobrevive el Día - .EXE</title>
-    <link rel="stylesheet" href="style.css?v=1.5">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <meta name="monetag" content="9d9d4a022fef0ce04a488ecd556b15ef"> 
+
+    <title>Shileno.exe</title>
+    <link rel="stylesheet" href="style.css?v=1.6">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-    <div id="main-layout">
+    <main id="main-layout">
         
-        <div id="stats-container">
-            <h2>📊 ESTADO CIVIL</h2>
-            <p>🌅 Etapa: <strong id="current-stage">MAÑANA</strong></p>
-            <p>💰 Cuenta RUT: $<span id="stat-plata">15000</span></p>
-            <p>🧠 Cordura: <span id="stat-cordura">100</span>/100</p>
-            <p>🤪 Delirio: <span id="stat-delirio">0</span>/100</p>
-            <p>🛡️ Vulnerable: <span id="stat-vulnerable">0</span></p>
-            
-            <div id="character-container">
-                <img id="player-sprite" src="assets/player-normal.png" alt="Mono">
+        <section class="game-sidebar">
+            <div class="stats-panel">
+                <div class="stat-box">💸 Plata: <span id="stat-plata">$0</span></div>
+                <div class="stat-box">🧠 Cordura: <span id="stat-cordura">100</span></div>
+                <div class="stat-box">🌀 Delirio: <span id="stat-delirio">0</span></div>
+                <div class="stat-box">🛡️ Vulnerable: <span id="stat-vulnerable">0</span></div>
             </div>
+            
+            <div class="avatar-container">
+                <img id="player-sprite" src="player-normal.png" alt="Estado del Personaje">
+            </div>
+        </section>
+
+        <section class="game-content">
+            <div class="card-container">
+                <div class="card-header">
+                    <span id="game-stage">🌅 MAÑANA</span>
+                </div>
+                <div class="card-body">
+                    <p id="event-text">Cargando la paranoia del día...</p>
+                    <p id="event-subtext" class="letra-chica"></p>
+                </div>
+            </div>
+
+            <div id="options-container" class="options-list">
+                </div>
+        </section>
+
+    </main>
+
+    <footer id="monetization-footer">
+        <div class="ads-clean-banner">
+            <p class="ad-placeholder">📺 Espacio publicitario limpio (CPM Pasivo)</p>
         </div>
-
-        <div id="game-container">
-            <h3 id="event-title">Cargando aviso...</h3>
-            <p id="event-text"></p>
-            <p id="event-subtext"></p>
-
-            <div id="options-container"></div>
+        <div class="donation-button-container">
+            <a href="https://chilechallenge.online" target="_blank" class="cafecito-btn">
+                ☕ ¿Sobreviviste al día? Invítale un Súper 8 al dev
+            </a>
         </div>
+    </footer>
 
-    </div>
-
-    <div id="game-over-container" style="display: none;">
-        <h1 id="game-over-title">FIN DEL JUEGO</h1>
-        <p id="game-over-text"></p>
-        <button onclick="location.reload()">REINTENTAR DÍA</button>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.js?v=1.9"></script>
+    <script src="script.js?v=2.0"></script>
 </body>
 </html>
