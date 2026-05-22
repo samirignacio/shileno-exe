@@ -1,7 +1,7 @@
 const SUPABASE_URL = "https://ofpdeqvoldmhbrhvnaga.supabase.co"; 
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mcGRlcXZvbGRtaGJyaHZuYWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNTA5NTksImV4cCI6MjA5NDcyNjk1OX0.HFuZ6AzQmY2-aBsLCAcMhLL0oss2QEwKeYToAO_0lg0";
 
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let gameState = {
     plata: 15000,
@@ -36,20 +36,23 @@ function updateUIStats() {
     }
 }
 
-function setPlayerSprite(forcedPose = null) {
+function setPlayerSprite(spriteFromDatabase = null) {
     const spriteImg = document.getElementById('player-sprite');
     if (!spriteImg) return;
 
-    if (forcedPose) {
-        spriteImg.src = `assets/${forcedPose}`;
-        return;
-    }
-
+    // Si la cordura llega a 0, muere sin importar el evento
     if (gameState.cordura <= 0) {
-        spriteImg.src = "assets/player-muerto.jpg";
+        spriteImg.src = "assets/player-muerto.png";
         return;
     }
 
+    // Si el evento actual trae un sprite específico desde Supabase, se usa directamente
+    if (spriteFromDatabase) {
+        spriteImg.src = `assets/${spriteFromDatabase}`;
+        return;
+    }
+
+    // Estados pasivos automáticos (Todos en .png)
     if (gameState.plata <= 0 || gameState.cordura <= 30) {
         spriteImg.src = "assets/player-derrotado.png";
     } else if (gameState.delirio >= 70) {
@@ -64,7 +67,7 @@ async function loadRandomEvent() {
     const tables = stageTables[currentStageKey];
 
     try {
-        const { data: eventsList, error: listError } = await supabaseClient
+        const { data: eventsList, error: listError } = await supabase
             .from(tables.events)
             .select('id');
 
@@ -74,7 +77,7 @@ async function loadRandomEvent() {
         const randomElement = eventsList[Math.floor(Math.random() * eventsList.length)];
         const randomEventId = randomElement.id;
 
-        const { data: eventData, error: eventError } = await supabaseClient
+        const { data: eventData, error: eventError } = await supabase
             .from(tables.events)
             .select('*')
             .eq('id', randomEventId)
@@ -82,7 +85,7 @@ async function loadRandomEvent() {
 
         if (eventError) throw eventError;
 
-        const { data: optionsData, error: optionsError } = await supabaseClient
+        const { data: optionsData, error: optionsError } = await supabase
             .from(tables.options)
             .select('*')
             .eq('evento_id', randomEventId);
@@ -103,7 +106,8 @@ function renderEvent(event, options) {
     document.getElementById('event-text').innerText = event.texto;
     document.getElementById('event-subtext').innerText = event.letra_chica ? `(${event.letra_chica})` : '';
 
-    setPlayerSprite(event.sprite || null);
+    // Llama al sprite exacto definido en tu fila de Supabase (ej: 'player-corriendo.png')
+    setPlayerSprite(event.sprite);
 
     const optionsContainer = document.getElementById('options-container');
     optionsContainer.innerHTML = '';
@@ -128,10 +132,11 @@ function handleDecision(option) {
 
     updateUIStats();
 
+    // Reacciones rápidas basadas en el impacto de la opción tomada (Todas .png)
     let reactionPose = null;
     if (option.efecto_cordura < -15) reactionPose = "player-esquizo.png";
     else if (option.efecto_plata < -5000) reactionPose = "player-derrotado.png";
-    else if (option.efecto_delirio > 15) reactionPose = "player-puerco.jpg";
+    else if (option.efecto_delirio > 15) reactionPose = "player-puerco.png";
 
     if (reactionPose) {
         setPlayerSprite(reactionPose);
@@ -139,7 +144,7 @@ function handleDecision(option) {
 
     if (gameState.cordura <= 0) {
         setTimeout(() => {
-            setPlayerSprite("player-muerto.jpg");
+            setPlayerSprite();
             triggerGameOver("Tu mente colapsó por completo ante la realidad país. Te quedaste mirando fijo la pared de tu pieza perdiendo el lazo con el mundo exterior.");
         }, 600);
         return;
