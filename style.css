@@ -11,7 +11,8 @@ html, body {
 
 body {
     background-color: #d1d5db;
-    background-image: url('fondo-desktop.png') !important;
+    /* CORREGIDO: Apunta a la carpeta assets */
+    background-image: url('assets/fondo-desktop.png') !important;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -30,7 +31,7 @@ body {
     flex-direction: column;
     gap: 12px;
     width: 100%;
-    max-width: 450px; /* Mantiene el juego como una app móvil al centro de la pantalla en PC */
+    max-width: 450px; 
     height: calc(100% - 140px); 
     overflow-y: auto;
     padding-bottom: 10px;
@@ -196,12 +197,12 @@ body {
     background: #16a34a;
 }
 
-/* --- RESPONSIVE PARA PANTALLAS GRANDES (Mantiene el layout compacto de celular al centro) --- */
+/* --- RESPONSIVE PARA PANTALLAS GRANDES --- */
 @media (min-width: 768px) {
     body {
         padding-top: 30px;
     }
     #main-layout {
-        height: calc(100vh - 200px); /* Ajuste dinámico de altura para monitores */
+        height: calc(100vh - 200px); 
     }
 }
