@@ -1,197 +1,234 @@
-body {
-    background-color: #d1d5db;
-    background-image: url('assets/fondo-mobile.png') !important;
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    font-family: 'Courier New', Courier, monospace;
-    color: #222;
+/* --- RESET GENERAL --- */
+html, body {
     margin: 0;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    min-height: 100vh;
+    padding: 0;
+    width: 100%;
+    /* 100svh bloquea el alto exacto de la pantalla útil excluyendo las barras móviles */
+    height: 100vh;
+    height: 100svh; 
+    overflow: hidden; 
     box-sizing: border-box;
 }
 
+body {
+    background-color: #d1d5db;
+    background-image: url('fondo-desktop.png') !important;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    font-family: 'Courier New', Courier, monospace;
+    color: #222;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+}
+
+/* --- CONTENEDOR ELÁSTICO RESPONSIVE --- */
 #main-layout {
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    max-width: 1100px;
+    gap: 10px;
     width: 100%;
-    margin-top: 10px;
-    align-items: center;
-}
-
-#stats-container {
-    background: #faf8f5;
-    border: 1px solid #c8b9a6;
-    box-shadow: 5px 5px 0px rgba(0,0,0,0.15);
-    padding: 15px;
-    width: 100%;
-    max-width: 340px;
-    box-sizing: border-box;
-    position: relative;
-}
-
-#stats-container h2 {
-    font-size: 1.1em;
-    border-bottom: 2px dashed #999;
+    max-width: 450px;
+    /* Le descuenta el espacio aproximado que ocupa el footer inferior de los anuncios */
+    height: calc(100% - 130px); 
+    overflow-y: auto;
     padding-bottom: 5px;
-    margin-top: 0;
 }
 
-#stats-container p {
-    margin: 8px 0;
+/* --- SECCIONES INTERNES --- */
+.game-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.stats-panel {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    border: 2px solid #222;
+    box-shadow: 4px 4px 0px #222;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+}
+
+.stat-box {
+    font-weight: bold;
     font-size: 0.9em;
 }
 
-#character-container {
-    background: transparent;
-    padding: 10px;
+.avatar-container {
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #222;
+    box-shadow: 4px 4px 0px #222;
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 10px;
+    height: 140px;
 }
 
 #player-sprite {
-    max-height: 280px;
-    width: auto;
-    max-width: 100%;
-    filter: drop-shadow(6px 6px 0px rgba(0, 0, 0, 0.15));
-    transition: transform 0.1s ease;
+    max-height: 100%;
+    object-fit: contain;
 }
 
-#game-container {
-    background: #ffffff;
-    border-left: 8px solid #cc3333;
-    border-top: 1px solid #ccc;
-    border-right: 1px solid #ccc;
-    border-bottom: 1px solid #ccc;
-    box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    width: 100%;
-    box-sizing: border-box;
+/* --- TARJETA DE NARRATIVA --- */
+.card-container {
+    background: #fff;
+    border: 2px solid #222;
+    box-shadow: 4px 4px 0px #222;
+    margin-top: 5px;
 }
 
-#event-title {
-    text-transform: uppercase;
-    color: #cc3333;
-    font-size: 1.1em;
-    margin-top: 0;
-    letter-spacing: 1px;
+.card-header {
+    background: #222;
+    color: #fff;
+    padding: 6px 10px;
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+.card-body {
+    padding: 15px;
 }
 
 #event-text {
+    font-size: 1.05em;
+    margin: 0 0 10px 0;
     line-height: 1.4;
-    font-size: 1em;
-    background: #fffdf5;
-    padding: 12px;
-    border: 1px dashed #d1c7bd;
-    margin-bottom: 10px;
 }
 
-#event-subtext {
-    color: #777;
-    font-size: 0.8em;
-    text-align: right;
-    margin-top: 0;
+.letra-chica {
+    font-size: 0.85em;
+    color: #555;
+    font-style: italic;
+    margin: 0;
 }
 
-#options-container {
-    margin-top: 20px;
+/* --- OPCIONES / BOTONES --- */
+.options-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
+    margin-top: 10px;
 }
 
 .option-btn {
-    background: #fff8cc;
-    border: 1px solid #e6db94;
-    border-bottom: 3px solid #d4c779;
-    color: #333;
+    background: #f3f4f6;
+    border: 2px solid #222;
+    padding: 10px;
     font-family: inherit;
-    font-size: 0.95em;
-    font-weight: bold;
-    padding: 12px 15px;
+    font-size: 0.9em;
     text-align: left;
     cursor: pointer;
-    box-sizing: border-box;
-    width: 100%;
-    transition: background 0.2s;
+    box-shadow: 3px 3px 0px #222;
+    transition: transform 0.1s, background 0.1s;
 }
 
 .option-btn:hover {
-    background: #fff3a3;
+    background: #e5e7eb;
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0px #222;
 }
 
-#game-over-container {
-    display: none;
-    max-width: 90%;
-    width: 450px;
-    background: #ffe6e6;
-    border: 3px double #ff3333;
-    box-shadow: 6px 6px 0px rgba(0,0,0,0.2);
-    padding: 20px;
-    text-align: center;
-    margin-top: 30px;
+.option-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0px #222;
+}
+
+/* --- INTERFAZ MONETIZACIÓN BAJO EL JUEGO --- */
+#monetization-footer {
+    width: 100%;
+    max-width: 450px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-top: auto;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 8px;
+    border-top: 2px dashed #222;
     box-sizing: border-box;
 }
 
-#game-over-container button {
-    background: #333;
-    color: #fff;
-    border: none;
-    padding: 12px 25px;
+.ads-clean-banner {
+    width: 100%;
+    min-height: 50px; /* Alto estándar para banners móviles modernos (320x50) */
+    background: #f9fafb;
+    border: 1px dashed #9ca3af;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ad-placeholder {
+    font-size: 0.75em;
+    color: #6b7280;
+    margin: 0;
+}
+
+.cafecito-btn {
+    display: inline-block;
+    background: #22c55e;
+    color: white;
+    text-decoration: none;
     font-family: inherit;
-    cursor: pointer;
     font-weight: bold;
-    margin-top: 15px;
+    font-size: 0.85em;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border-bottom: 3px solid #16a34a;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-/* --- EFECTO VISUAL GLITCH (ESTABILIDAD EMOCIONAL / CORDURA BAJA) --- */
-.glitch-active {
-    animation: glitch-anim 0.25s infinite alternate;
-    filter: drop-shadow(4px 0px 0px rgba(255,0,0,0.7)) drop-shadow(-4px 0px 0px rgba(0,0,255,0.7)) !important;
+.cafecito-btn:hover {
+    background: #16a34a;
 }
 
-@keyframes glitch-anim {
-    0% { transform: translate(2px, 1px) rotate(0deg) scaleX(1); }
-    20% { transform: translate(-1px, -2px) rotate(-1deg) scaleX(0.97); }
-    40% { transform: translate(-3px, 0px) rotate(1deg); }
-    60% { transform: translate(0px, 2px) rotate(0deg) scaleX(1.03); }
-    80% { transform: translate(1px, -1px) rotate(1deg); }
-    100% { transform: translate(-1px, 2px) rotate(-1deg); }
-}
-
-/* --- DETECCIÓN DE PANTALLAS GRANDES (PC / TABLET HORIZONTAL) --- */
+/* --- REGLAS EXCLUSIVAS PARA COMPUTADOR (DESKTOP) --- */
 @media (min-width: 768px) {
+    html, body {
+        overflow: auto;
+        height: auto;
+    }
     body {
-        padding: 20px;
-        background-image: url('assets/fondo-desktop.png') !important;
+        justify-content: flex-start;
+        padding: 30px;
     }
     #main-layout {
         flex-direction: row;
         align-items: flex-start;
-        gap: 30px;
-        margin-top: 20px;
+        gap: 25px;
+        max-width: 900px;
+        height: auto;
+        overflow: visible;
     }
-    #stats-container {
-        width: 280px;
-        transform: rotate(-1deg);
+    .game-sidebar {
+        width: 250px;
+        flex-shrink: 0;
     }
-    #player-sprite {
-        max-height: 380px;
+    .game-content {
+        flex-grow: 1;
     }
-    #game-container {
-        flex: 1;
-        transform: rotate(1deg);
-        padding: 25px;
+    .stats-panel {
+        grid-template-columns: 1fr;
     }
-    #event-title { font-size: 1.3em; }
-    #event-text { font-size: 1.1em; padding: 15px; }
-    .option-btn { font-size: 1em; padding: 15px 20px; }
+    #monetization-footer {
+        max-width: 900px;
+        margin-top: 40px;
+        background: transparent;
+        border-top: 2px dashed #222;
+    }
+    .ads-clean-banner {
+        min-height: 90px; /* En PC se expande automáticamente a formato banner horizontal 728x90 */
+    }
+    .cafecito-btn {
+        width: auto;
+    }
 }
