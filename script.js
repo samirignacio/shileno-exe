@@ -1,7 +1,6 @@
 const SUPABASE_URL = "https://ofpdeqvoldmhbrhvnaga.supabase.co"; 
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mcGRlcXZvbGRtaGJyaHZuYWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNTA5NTksImV4cCI6MjA5NDcyNjk1OX0.HFuZ6AzQmY2-aBsLCAcMhLL0oss2QEwKeYToAO_0lg0";
 
-// Nombre único 'db' para evitar colisión con el CDN global de Supabase
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let gameState = {
@@ -11,7 +10,7 @@ let gameState = {
     vulnerable: 0,
     stages: ['morning', 'midday', 'afternoon', 'night'],
     currentStageIndex: 0,
-    eventsInCurrentStage: 0 // Controlador estricto de eventos por etapa
+    eventsInCurrentStage: 0
 };
 
 const stageTables = {
@@ -27,7 +26,6 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function updateUIStats() {
-    // Parcheado con las IDs exactas del nuevo index.html
     if(document.getElementById('stat-plata')) document.getElementById('stat-plata').innerText = `$${gameState.plata}`;
     if(document.getElementById('stat-cordura')) document.getElementById('stat-cordura').innerText = gameState.cordura;
     if(document.getElementById('stat-delirio')) document.getElementById('stat-delirio').innerText = gameState.delirio;
@@ -37,7 +35,6 @@ function updateUIStats() {
     if (currentStageKey) {
         const stageLabelElement = document.getElementById('game-stage');
         if (stageLabelElement) {
-            // Muestra la etapa real y el progreso interno sin romper el layout (ej: ☀️ MEDIODÍA 2/3)
             stageLabelElement.innerText = `${stageTables[currentStageKey].label} (${gameState.eventsInCurrentStage + 1}/3)`;
         }
     }
@@ -47,33 +44,30 @@ function setPlayerSprite(spriteFromDatabase = null) {
     const spriteImg = document.getElementById('player-sprite');
     if (!spriteImg) return;
 
-    // 1. EVALUACIÓN DE INESTABILIDAD (Activa el glitch por CSS)
     if (gameState.delirio > 50 || gameState.cordura < 40) {
         spriteImg.classList.add('glitch-active');
     } else {
         spriteImg.classList.remove('glitch-active');
     }
 
-    // 2. VERIFICACIÓN DE FIN DEL JUEGO
+    // CORREGIDO: Todas las respuestas de imagen se van a buscar estricto a la carpeta assets/
     if (gameState.cordura <= 0) {
-        spriteImg.src = "player-muerto.png";
+        spriteImg.src = "assets/player-muerto.png";
         spriteImg.classList.remove('glitch-active');
         return;
     }
 
-    // 3. CARGA DINÁMICA: Si Supabase trae un asset específico, se renderiza ese inmediatamente
     if (spriteFromDatabase) {
-        spriteImg.src = spriteFromDatabase;
+        spriteImg.src = `assets/${spriteFromDatabase}`;
         return;
     }
 
-    // 4. RESPALDOS AUTOMÁTICOS PASIVOS (Raíz limpia sin la carpeta assets/ obsoleta)
     if (gameState.plata <= 0 || gameState.cordura <= 30) {
-        spriteImg.src = "player-derrotado.png";
+        spriteImg.src = "assets/player-derrotado.png";
     } else if (gameState.delirio >= 70) {
-        spriteImg.src = "player-esquizo.png";
+        spriteImg.src = "assets/player-esquizo.png";
     } else {
-        spriteImg.src = "player-normal.png";
+        spriteImg.src = "assets/player-normal.png";
     }
 }
 
@@ -112,19 +106,22 @@ async function loadRandomEvent() {
     } catch (err) {
         console.error("Error Supabase:", err.message);
         const txtEvent = document.getElementById('event-text');
-        if (txtEvent) txtEvent.innerText = "🚨 Error de conexión con Supabase. Revisa las tablas.";
+        if (txtEvent) txtEvent.innerText = "🚨 Error al conectar las bases de datos.";
     }
 }
 
 function renderEvent(event, options) {
-    // Ajustado para imprimir la narrativa directo en la tarjeta limpia
     const txtEvent = document.getElementById('event-text');
     const txtSub = document.getElementById('event-subtext');
+    const titleEvent = document.getElementById('event-title');
 
+    if (titleEvent) {
+        const currentStageKey = gameState.stages[gameState.currentStageIndex].toUpperCase();
+        titleEvent.innerText = `Evento de la ${currentStageKey}`;
+    }
     if (txtEvent) txtEvent.innerText = event.texto;
     if (txtSub) txtSub.innerText = event.letra_chica ? `(${event.letra_chica})` : '';
 
-    // Asigna el asset guardado en la fila limpia de Supabase
     setPlayerSprite(event.sprite);
 
     const optionsContainer = document.getElementById('options-container');
@@ -141,17 +138,14 @@ function renderEvent(event, options) {
 }
 
 function handleDecision(option) {
-    // Aplicación de impactos a las estadísticas locales
     gameState.plata += option.efecto_plata;
     gameState.cordura += option.efecto_cordura;
     gameState.delirio += option.efecto_delirio;
     gameState.vulnerable += option.efecto_vulnerable;
 
-    // Topes de seguridad lógicos
     if (gameState.cordura > 100) gameState.cordura = 100;
     if (gameState.delirio < 0) gameState.delirio = 0;
 
-    // Reacción visual drástica inmediata basada en la decisión tomada
     let reactionPose = null;
     if (option.efecto_cordura < -15) reactionPose = "player-esquizo.png";
     else if (option.efecto_plata < -5000) reactionPose = "player-derrotado.png";
@@ -161,7 +155,6 @@ function handleDecision(option) {
         setPlayerSprite(reactionPose);
     }
 
-    // Validación fulminante de Game Over
     if (gameState.cordura <= 0) {
         setTimeout(() => {
             setPlayerSprite();
@@ -170,11 +163,9 @@ function handleDecision(option) {
         return;
     }
 
-    // Incrementar contador interno de eventos transcurridos en la etapa actual
     gameState.eventsInCurrentStage++;
 
     setTimeout(() => {
-        // Si ya completó los 3 eventos requeridos, avanza de etapa del día
         if (gameState.eventsInCurrentStage >= 3) {
             gameState.eventsInCurrentStage = 0;
             gameState.currentStageIndex++;
@@ -182,7 +173,6 @@ function handleDecision(option) {
 
         updateUIStats();
 
-        // Si se recorrieron las 4 etapas con sus 3 eventos cada una (12 eventos en total) -> Victoria
         if (gameState.currentStageIndex >= gameState.stages.length) {
             triggerVictory();
         } else {
@@ -194,7 +184,6 @@ function handleDecision(option) {
 function triggerGameOver(mensaje) {
     const layout = document.getElementById('main-layout');
     if (layout) {
-        // Reutilizamos el contenedor inyectando el estado de muerte limpio estilo retro
         layout.innerHTML = `
             <div class="card-container" style="border: 2px solid #ef4444; margin-top:20px;">
                 <div class="card-header" style="background:#ef4444;">💀 GAME OVER</div>
