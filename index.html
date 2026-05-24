@@ -10,13 +10,92 @@
 </head>
 <body>
 
+  <!-- ── PANTALLA DE INICIO ── -->
+  <div id="splash-screen">
+
+    <div id="splash-content">
+      <div id="splash-sprite-wrap">
+        <img id="splash-sprite" src="assets/player-normal.png" alt="Shileno">
+      </div>
+
+      <div id="splash-title-wrap">
+        <p id="splash-pre">▶ chilechallenge.online</p>
+        <h1 id="splash-title" data-text="SHILENO.EXE">SHILENO.EXE</h1>
+        <p id="splash-sub">Sobrevive un día más en Santiago</p>
+      </div>
+
+      <div id="mode-selector">
+        <p id="mode-label">— ELIGE TU MODO —</p>
+
+        <button class="mode-btn active-mode" data-mode="normal" onclick="selectMode(this)">
+          <span class="mode-icon">🏙️</span>
+          <span class="mode-info">
+            <strong>SHILENO.EXE</strong>
+            <small>Modo Normal — Un día cualquiera en Santiago</small>
+          </span>
+          <span class="mode-tag available">DISPONIBLE</span>
+        </button>
+
+        <button class="mode-btn locked" disabled>
+          <span class="mode-icon">🦆</span>
+          <span class="mode-info">
+            <strong>SHILENO-PATO.EXE</strong>
+            <small>Austeridad extrema — Sin empleo, sin plata, sin alma</small>
+          </span>
+          <span class="mode-tag dlc">DLC PRÓXIMO</span>
+        </button>
+
+        <button class="mode-btn locked" disabled>
+          <span class="mode-icon">🍻</span>
+          <span class="mode-info">
+            <strong>EDICIÓN 18</strong>
+            <small>Fiestas Patrias — Fondas, terremotos y deudas</small>
+          </span>
+          <span class="mode-tag dlc">DLC PRÓXIMO</span>
+        </button>
+
+        <button class="mode-btn locked" disabled>
+          <span class="mode-icon">🎒</span>
+          <span class="mode-info">
+            <strong>SHILENO-TURISTA.EXE</strong>
+            <small>Mochilero — Recorre Chile con $0 en el bolsillo</small>
+          </span>
+          <span class="mode-tag dlc">DLC PRÓXIMO</span>
+        </button>
+
+        <button class="mode-btn locked" disabled>
+          <span class="mode-icon">🛸</span>
+          <span class="mode-info">
+            <strong>UFO-SHILENO.EXE</strong>
+            <small>El Viaje Místico — El folclor te consume</small>
+          </span>
+          <span class="mode-tag dlc">DLC PRÓXIMO</span>
+        </button>
+
+        <button class="mode-btn locked" disabled>
+          <span class="mode-icon">🌎</span>
+          <span class="mode-info">
+            <strong>NI-TAN-SHILENO.EXE</strong>
+            <small>Choque Cultural — Chile desde afuera</small>
+          </span>
+          <span class="mode-tag dlc">DLC PRÓXIMO</span>
+        </button>
+      </div>
+
+      <button id="btn-start" onclick="startGame()">▶ INICIAR DÍA</button>
+      <p id="splash-version">v1.0 — chilechallenge.online</p>
+    </div>
+  </div>
+
+  <!-- ── TRANSICIÓN ETAPA ── -->
   <div id="stage-transition">
     <div id="stage-icon" class="stage-icon">🌅</div>
     <h2 id="stage-title">MAÑANA COMPLETADA</h2>
     <p id="stage-subtitle">Aguantaste la mañana. Por ahora.</p>
   </div>
 
-  <div id="main-layout">
+  <!-- ── JUEGO ── -->
+  <div id="main-layout" style="display:none">
 
     <div class="left-col">
       <div id="stats-container">
@@ -46,7 +125,6 @@
           </div>
         </div>
       </div>
-
       <div id="character-container">
         <img id="player-sprite" src="assets/player-normal.png" alt="Shileno">
       </div>
@@ -61,6 +139,7 @@
 
   </div>
 
+  <!-- ── FOOTER ── -->
   <div id="footer-ads">
     <a class="btn-donacion" href="#" target="_blank" rel="noopener">
       ☕ ¿Sobreviviste el día? Invítale un Súper 8 al dev
