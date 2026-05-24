@@ -592,4 +592,4 @@ body.cursed-mode::after {
 @keyframes scanlines-move {
   from { background-position: 0 0; }
   to   { background-position: 0 100px; }
-           }
+}
