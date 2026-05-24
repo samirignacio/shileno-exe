@@ -425,3 +425,29 @@ function showErr(msg) {
   const el = document.getElementById('event-text');
   if (el) el.innerText = msg;
 }
+
+/* ── SPLASH SCREEN ── */
+let selectedMode = 'normal';
+
+function selectMode(btn) {
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active-mode'));
+  btn.classList.add('active-mode');
+  selectedMode = btn.dataset.mode;
+}
+
+function startGame() {
+  const splash = document.getElementById('splash-screen');
+  const layout = document.getElementById('main-layout');
+  const footer = document.getElementById('footer-ads');
+
+  // Animación de salida
+  splash.classList.add('hide');
+
+  setTimeout(() => {
+    splash.style.display = 'none';
+    layout.style.display = 'flex';
+    if (footer) footer.style.display = 'block';
+    updateUI();
+    loadEvent();
+  }, 650);
+}
