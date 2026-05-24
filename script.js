@@ -1,430 +1,427 @@
 /* =============================================
-   SHILENO.EXE — script.js v2.0
+   SHILENO.EXE — script.js v3.0 FINAL
    ============================================= */
 
 const SUPABASE_URL = "https://ofpdeqvoldmhbrhvnaga.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mcGRlcXZvbGRtaGJyaHZuYWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNTA5NTksImV4cCI6MjA5NDcyNjk1OX0.HFuZ6AzQmY2-aBsLCAcMhLL0oss2QEwKeYToAO_0lg0";
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ── ESTADO DEL JUEGO ──────────────────────────
-let gameState = {
+const GHOST_SPRITES = [
+  'player-corriendo.png',
+  'player-derrotado.png',
+  'player-enojado.png',
+  'player-esquizo.png',
+  'player-puerco.png',
+  'player-muerto.png'
+];
+
+const STAGE_TABLES = {
+  morning:   { events:'morning_events',   options:'morning_options',   label:'MAÑANA',   icon:'🌅' },
+  midday:    { events:'midday_events',    options:'midday_options',    label:'MEDIODÍA', icon:'☀️' },
+  afternoon: { events:'afternoon_events', options:'afternoon_options', label:'TARDE',    icon:'🌆' },
+  night:     { events:'night_events',     options:'night_options',     label:'NOCHE',    icon:'🌌' }
+};
+
+let gs = {
   plata: 15000,
   cordura: 100,
   delirio: 0,
   vulnerable: 0,
-  stages: ['morning', 'midday', 'afternoon', 'night'],
-  currentStageIndex: 0,
-  eventsInCurrentStage: 0,
-  currentSprite: 'player-normal.png', // sprite activo persistente
-  isTyping: false,
-  optionsLocked: false
+  stages: ['morning','midday','afternoon','night'],
+  stageIdx: 0,
+  stageEvents: 0,
+  currentSprite: 'player-normal.png',
+  optionsLocked: false,
+  lastPsyLevel: -1,
+  autoShakeTimer: null
 };
 
-const stageTables = {
-  morning:   { events: 'morning_events',   options: 'morning_options',   label: 'MAÑANA',   icon: '🌅' },
-  midday:    { events: 'midday_events',    options: 'midday_options',    label: 'MEDIODÍA', icon: '☀️' },
-  afternoon: { events: 'afternoon_events', options: 'afternoon_options', label: 'TARDE',    icon: '🌆' },
-  night:     { events: 'night_events',     options: 'night_options',     label: 'NOCHE',    icon: '🌌' }
-};
-
-// ── INIT ──────────────────────────────────────
+/* ── INIT ── */
 window.addEventListener('DOMContentLoaded', () => {
-  updateUIStats();
-  loadRandomEvent();
+  updateUI();
+  loadEvent();
 });
 
-// ── ACTUALIZAR UI DE STATS ────────────────────
-function updateUIStats() {
-  const { plata, cordura, delirio, vulnerable, stages, currentStageIndex, eventsInCurrentStage } = gameState;
+/* ── NIVEL DE PSICOSIS ── */
+function psychosisLevel() {
+  const d = gs.delirio, c = gs.cordura;
+  if (d >= 100 || c <= 0)  return 4;
+  if (d >= 90  || c <= 15) return 3;
+  if (d >= 70  || c <= 30) return 2;
+  if (d >= 50  || c <= 45) return 1;
+  if (d >= 30  || c <= 60) return 0;
+  return -1;
+}
 
-  // Valores numéricos
-  const elPlata     = document.getElementById('stat-plata');
-  const elCordura   = document.getElementById('stat-cordura');
-  const elDelirio   = document.getElementById('stat-delirio');
-  const elVulnerable= document.getElementById('stat-vulnerable');
+/* ── UPDATE UI ── */
+function updateUI() {
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+  const setClass = (id, cls) => { const el = document.getElementById(id); if (el) el.className = cls; };
 
-  if (elPlata)      elPlata.innerText = `$${plata.toLocaleString('es-CL')}`;
-  if (elVulnerable) elVulnerable.innerText = vulnerable;
+  set('stat-plata',      '$' + gs.plata.toLocaleString('es-CL'));
+  set('stat-vulnerable', gs.vulnerable);
+  set('stat-cordura',    gs.cordura);
+  set('stat-delirio',    gs.delirio);
 
-  if (elCordura) {
-    elCordura.innerText = cordura;
-    elCordura.className = 'stat-value' + (cordura <= 20 ? ' danger' : cordura <= 40 ? ' warning' : '');
-  }
-  if (elDelirio) {
-    elDelirio.innerText = delirio;
-    elDelirio.className = 'stat-value' + (delirio >= 70 ? ' danger' : delirio >= 40 ? ' warning' : '');
-  }
+  setClass('stat-cordura', 'stat-value' + (gs.cordura <= 20 ? ' danger' : gs.cordura <= 40 ? ' warning' : ''));
+  setClass('stat-delirio', 'stat-value' + (gs.delirio >= 70 ? ' danger' : gs.delirio >= 40 ? ' warning' : ''));
 
-  // Barras animadas
-  const barCordura = document.getElementById('bar-cordura');
-  const barDelirio = document.getElementById('bar-delirio');
-  if (barCordura) {
-    barCordura.style.width = `${Math.max(0, cordura)}%`;
-    barCordura.className = 'stat-bar cordura' + (cordura <= 40 ? ' low' : '');
-  }
-  if (barDelirio) {
-    barDelirio.style.width = `${Math.min(100, delirio)}%`;
-    barDelirio.className = 'stat-bar delirio' + (delirio >= 50 ? ' high' : '');
-  }
+  const bc = document.getElementById('bar-cordura');
+  const bd = document.getElementById('bar-delirio');
+  if (bc) { bc.style.width = Math.max(0, gs.cordura) + '%'; bc.className = 'stat-bar cordura' + (gs.cordura <= 40 ? ' low' : ''); }
+  if (bd) { bd.style.width = Math.min(100, gs.delirio) + '%'; bd.className = 'stat-bar delirio' + (gs.delirio >= 50 ? ' high' : ''); }
 
-  // Etapa
-  const stageKey = stages[currentStageIndex];
+  const stageKey = gs.stages[gs.stageIdx];
   if (stageKey) {
-    const el = document.getElementById('game-stage');
-    if (el) {
-      const s = stageTables[stageKey];
-      el.innerText = `${s.icon} ${s.label} (${eventsInCurrentStage + 1}/3)`;
-    }
+    const s = STAGE_TABLES[stageKey];
+    set('game-stage', s.icon + ' ' + s.label + ' (' + (gs.stageEvents + 1) + '/3)');
   }
 
-  // Modo cursed
   updateCursedMode();
+
+  const lvl = psychosisLevel();
+  if (lvl !== gs.lastPsyLevel) {
+    gs.lastPsyLevel = lvl;
+    updateGhosts();
+  }
 }
 
-// ── MODO CURSED ───────────────────────────────
+/* ── CURSED MODE ── */
 function updateCursedMode() {
-  const { cordura, delirio } = gameState;
-  const body = document.body;
-  const isCursed = delirio >= 50 || cordura <= 40;
-
-  if (isCursed && !body.classList.contains('cursed-mode')) {
-    body.classList.add('cursed-mode');
-  } else if (!isCursed && body.classList.contains('cursed-mode')) {
-    body.classList.remove('cursed-mode');
-  }
+  const b = document.body;
+  b.classList.remove('cursed-mode','cursed-severe','cursed-critical','cursed-collapse');
+  const lvl = psychosisLevel();
+  if (lvl >= 4) b.classList.add('cursed-mode','cursed-collapse');
+  else if (lvl >= 3) b.classList.add('cursed-mode','cursed-critical');
+  else if (lvl >= 2) b.classList.add('cursed-mode','cursed-severe');
+  else if (lvl >= 1) b.classList.add('cursed-mode');
 }
 
-// ── SPRITE ────────────────────────────────────
-// El sprite de la DB es la fuente de verdad.
-// Solo se sobreescribe si hay condición crítica de estado.
-function setPlayerSprite(spriteFromDB = null, isReaction = false) {
-  const spriteImg = document.getElementById('player-sprite');
-  if (!spriteImg) return;
+/* ── SPRITE ── */
+function setSprite(fromDB) {
+  const img = document.getElementById('player-sprite');
+  if (!img) return;
 
-  // Determinar qué sprite mostrar
-  let targetSprite;
+  let target;
+  if (gs.cordura <= 0)     target = 'player-muerto.png';
+  else if (fromDB)         { target = fromDB; gs.currentSprite = fromDB; }
+  else if (gs.delirio >= 70) target = gs.currentSprite = 'player-esquizo.png';
+  else if (gs.cordura <= 30) target = gs.currentSprite = 'player-derrotado.png';
+  else                       target = gs.currentSprite = 'player-normal.png';
 
-  if (gameState.cordura <= 0) {
-    targetSprite = 'player-muerto.png';
-  } else if (isReaction) {
-    // Sprite de reacción temporal (post-decisión), se pasa directo
-    targetSprite = spriteFromDB;
-  } else if (spriteFromDB) {
-    // Sprite asignado al evento desde Supabase — MANDA SIEMPRE
-    targetSprite = spriteFromDB;
-    gameState.currentSprite = spriteFromDB; // guardar como base del evento
-  } else {
-    // Fallback por estado si el evento no tiene sprite
-    if (gameState.delirio >= 70)         targetSprite = 'player-esquizo.png';
-    else if (gameState.cordura <= 30)    targetSprite = 'player-derrotado.png';
-    else                                  targetSprite = 'player-normal.png';
-    gameState.currentSprite = targetSprite;
-  }
+  const lvl = psychosisLevel();
+  img.className = '';
+  if (lvl >= 4) img.classList.add('glitch-active','sprite-level4');
+  else if (lvl >= 3) img.classList.add('glitch-active','sprite-level3');
+  else if (lvl >= 2) img.classList.add('glitch-active','sprite-level2');
+  else if (lvl >= 1) img.classList.add('sprite-level1');
 
-  // Glitch visual si estado crítico
-  const needsGlitch = gameState.delirio >= 30 || gameState.cordura < 40;
-  if (needsGlitch) {
-    spriteImg.classList.add('glitch-active');
-  } else {
-    spriteImg.classList.remove('glitch-active');
-  }
-
-  spriteImg.src = `assets/${targetSprite}`;
+  img.src = 'assets/' + target;
 }
 
-// Animación de reacción al elegir opción
-function playReactionSprite(reactionSprite) {
-  const spriteImg = document.getElementById('player-sprite');
-  if (!spriteImg || !reactionSprite) return;
-
-  spriteImg.classList.add('sprite-reaction');
-  spriteImg.src = `assets/${reactionSprite}`;
-
-  spriteImg.addEventListener('animationend', () => {
-    spriteImg.classList.remove('sprite-reaction');
-    // Volver al sprite base del evento actual
-    spriteImg.src = `assets/${gameState.currentSprite}`;
+function reactionSprite(sprite) {
+  const img = document.getElementById('player-sprite');
+  if (!img || !sprite) return;
+  img.classList.add('sprite-reaction');
+  img.src = 'assets/' + sprite;
+  img.addEventListener('animationend', () => {
+    img.classList.remove('sprite-reaction');
+    img.src = 'assets/' + gs.currentSprite;
   }, { once: true });
 }
 
-// ── TYPEWRITER ────────────────────────────────
-function typewriterEffect(element, text, speed = 28) {
-  return new Promise(resolve => {
-    gameState.isTyping = true;
-    element.innerText = '';
-    element.setAttribute('data-text', text);
-    element.classList.add('typing');
+/* ── GHOSTS ── */
+function updateGhosts() {
+  clearGhosts();
+  const lvl = psychosisLevel();
+  if (lvl < 0) return;
 
+  const container = document.getElementById('character-container');
+  if (!container) return;
+
+  const cfgs = [
+    { count:1, opacity:0.08, duration:8000,  size:58  },
+    { count:2, opacity:0.16, duration:5000,  size:72  },
+    { count:3, opacity:0.27, duration:3200,  size:84  },
+    { count:5, opacity:0.42, duration:1600,  size:96  },
+    { count:6, opacity:0.65, duration:750,   size:108 }
+  ];
+  const cfg = cfgs[lvl];
+  const sprites = [...GHOST_SPRITES].sort(() => Math.random() - 0.5);
+
+  for (let i = 0; i < cfg.count; i++) {
+    const g = document.createElement('img');
+    g.className = 'ghost-sprite' + (cfg.opacity >= 0.4 ? ' ghost-glitch' : '');
+    g.src = 'assets/' + sprites[i % sprites.length];
+    g.style.height = cfg.size + 'px';
+
+    const angle  = (i / cfg.count) * 280 - 140;
+    const rx = 38 + Math.random() * 22;
+    const ry = 22 + Math.random() * 18;
+    g.style.left = (50 + rx * Math.sin(angle * Math.PI / 180)) + '%';
+    g.style.top  = (50 - ry * Math.cos(angle * Math.PI / 180)) + '%';
+
+    const delay = i * (cfg.duration / cfg.count) * 0.55;
+    g.style.setProperty('--ghost-opacity',   cfg.opacity);
+    g.style.setProperty('--ghost-duration',  cfg.duration + 'ms');
+    g.style.setProperty('--ghost-delay',     delay + 'ms');
+    g.style.setProperty('--drift-x',  ((Math.random()-0.5)*18) + 'px');
+    g.style.setProperty('--drift-y',  ((Math.random()-0.5)*14) + 'px');
+    g.style.animation = 'ghost-pulse ' + cfg.duration + 'ms ' + delay + 'ms ease-in-out infinite';
+
+    container.appendChild(g);
+  }
+
+  if (lvl >= 3) {
+    const interval = lvl >= 4 ? 1000 : 2800;
+    gs.autoShakeTimer = setInterval(() => { if (Math.random() < 0.55) screenShake(); }, interval);
+  }
+}
+
+function clearGhosts() {
+  if (gs.autoShakeTimer) { clearInterval(gs.autoShakeTimer); gs.autoShakeTimer = null; }
+  document.querySelectorAll('.ghost-sprite').forEach(g => g.remove());
+}
+
+/* ── TYPEWRITER ── */
+function typewriter(el, text) {
+  return new Promise(resolve => {
+    el.innerText = '';
+    el.setAttribute('data-text', text);
+    el.classList.add('typing');
+    const lvl = psychosisLevel();
+    const speed = Math.max(8, 24 - lvl * 4);
     let i = 0;
-    const interval = setInterval(() => {
-      element.innerText += text[i];
-      element.setAttribute('data-text', element.innerText);
+    const iv = setInterval(() => {
+      let ch = text[i];
+      if (lvl >= 3 && Math.random() < 0.04) {
+        const glitchCh = ['█','▓','?','!','#'][Math.floor(Math.random()*5)];
+        el.innerText += glitchCh;
+        setTimeout(() => { el.innerText = el.innerText.slice(0,-1) + text[i]; }, 110);
+      } else {
+        el.innerText += ch;
+      }
+      el.setAttribute('data-text', el.innerText);
       i++;
       if (i >= text.length) {
-        clearInterval(interval);
-        element.classList.remove('typing');
-        gameState.isTyping = false;
+        clearInterval(iv);
+        el.classList.remove('typing');
         resolve();
       }
     }, speed);
   });
 }
 
-// ── SCREEN SHAKE ──────────────────────────────
+/* ── SCREEN SHAKE ── */
 function screenShake() {
-  document.body.classList.add('shake');
-  document.body.addEventListener('animationend', () => {
-    document.body.classList.remove('shake');
-  }, { once: true });
+  const lvl = psychosisLevel();
+  const cls = lvl >= 3 ? 'shake-hard' : 'shake';
+  document.body.classList.add(cls);
+  document.body.addEventListener('animationend', () => document.body.classList.remove(cls), { once:true });
 }
 
-// ── TRANSICIÓN DE ETAPA ───────────────────────
-function showStageTransition(completedStageKey) {
+/* ── STAGE TRANSITION ── */
+function showStageTransition(stageKey) {
   return new Promise(resolve => {
-    const overlay   = document.getElementById('stage-transition');
-    const iconEl    = document.getElementById('stage-icon');
-    const titleEl   = document.getElementById('stage-title');
-    const subtitleEl= document.getElementById('stage-subtitle');
-
-    if (!overlay) { resolve(); return; }
-
-    const messages = {
-      morning:   { title: 'MAÑANA COMPLETADA',   sub: 'Aguantaste la mañana. Por ahora.',           icon: '🌅' },
-      midday:    { title: 'MEDIODÍA SOBREVIVIDO', sub: 'El sol no te derritió. Aún.',                icon: '☀️' },
-      afternoon: { title: 'TARDE SUPERADA',       sub: 'Falta solo la noche. La más difícil.',       icon: '🌆' },
+    const ov = document.getElementById('stage-transition');
+    if (!ov) { resolve(); return; }
+    const lvl = psychosisLevel();
+    const msgs = {
+      morning:   { title:'MAÑANA COMPLETADA',   sub:'Aguantaste la mañana. Por ahora.',      icon:'🌅' },
+      midday:    { title:'MEDIODÍA SOBREVIVIDO', sub:'El sol no te derritió. Aún.',           icon:'☀️' },
+      afternoon: { title:'TARDE SUPERADA',       sub:'Falta solo la noche. La más difícil.',  icon:'🌆' }
     };
-
-    const msg = messages[completedStageKey] || { title: 'ETAPA COMPLETADA', sub: '...', icon: '⏱️' };
-
-    iconEl.innerText    = msg.icon;
-    titleEl.innerText   = msg.title;
-    subtitleEl.innerText= msg.sub;
-
-    overlay.classList.add('active');
-
-    setTimeout(() => {
-      overlay.classList.remove('active');
-      resolve();
-    }, 2200);
+    const m = msgs[stageKey] || { title:'ETAPA OK', sub:'...', icon:'⏱️' };
+    document.getElementById('stage-icon').innerText    = lvl >= 2 ? '💀' : m.icon;
+    document.getElementById('stage-title').innerText   = lvl >= 2 ? '¿SIGUES AHÍ?' : m.title;
+    document.getElementById('stage-subtitle').innerText= lvl >= 2 ? 'Las voces se hacen más fuertes...' : m.sub;
+    ov.classList.add('active');
+    if (lvl >= 2) ov.classList.add('cursed-overlay');
+    setTimeout(() => { ov.classList.remove('active','cursed-overlay'); resolve(); }, 2000);
   });
 }
 
-// ── CARGAR EVENTO ALEATORIO ───────────────────
-async function loadRandomEvent() {
-  gameState.optionsLocked = false;
-  const stageKey = gameState.stages[gameState.currentStageIndex];
-  const tables   = stageTables[stageKey];
-
+/* ── CARGAR EVENTO ── */
+async function loadEvent() {
+  gs.optionsLocked = false;
+  const key    = gs.stages[gs.stageIdx];
+  const tables = STAGE_TABLES[key];
   try {
-    // Obtener todos los IDs disponibles
-    const { data: eventsList, error: listError } = await db
-      .from(tables.events)
-      .select('id');
+    const { data: list, error: le } = await db.from(tables.events).select('id');
+    if (le) throw le;
+    if (!list || !list.length) { showErr('Sin eventos disponibles.'); return; }
 
-    if (listError) throw listError;
-    if (!eventsList || eventsList.length === 0) {
-      showError('No hay eventos disponibles para esta etapa.');
-      return;
-    }
+    const id = list[Math.floor(Math.random() * list.length)].id;
+    const { data: ev,   error: ee } = await db.from(tables.events).select('*').eq('id', id).single();
+    if (ee) throw ee;
+    const { data: opts, error: oe } = await db.from(tables.options).select('*').eq('evento_id', id);
+    if (oe) throw oe;
 
-    const randomId = eventsList[Math.floor(Math.random() * eventsList.length)].id;
-
-    // Obtener evento completo
-    const { data: eventData, error: eventError } = await db
-      .from(tables.events)
-      .select('*')
-      .eq('id', randomId)
-      .single();
-
-    if (eventError) throw eventError;
-
-    // Obtener opciones
-    const { data: optionsData, error: optionsError } = await db
-      .from(tables.options)
-      .select('*')
-      .eq('evento_id', randomId);
-
-    if (optionsError) throw optionsError;
-
-    await renderEvent(eventData, optionsData);
-
-  } catch (err) {
-    console.error('Error Supabase:', err.message);
-    showError('🚨 Error al conectar con la base de datos.');
+    await renderEvent(ev, opts);
+  } catch(err) {
+    console.error(err);
+    showErr('🚨 Error de conexión. Recarga la página.');
   }
 }
 
-// ── RENDERIZAR EVENTO ─────────────────────────
-async function renderEvent(event, options) {
+/* ── RENDER EVENTO ── */
+async function renderEvent(ev, opts) {
   const titleEl   = document.getElementById('event-title');
   const textEl    = document.getElementById('event-text');
   const subtextEl = document.getElementById('event-subtext');
   const optsEl    = document.getElementById('options-container');
 
-  // Título de etapa
-  if (titleEl) {
-    const stageKey = gameState.stages[gameState.currentStageIndex];
-    const s = stageTables[stageKey];
-    titleEl.innerText = `${s.icon} EVENTO DE LA ${s.label}`;
-    titleEl.classList.add('fade-in');
-  }
+  const key = gs.stages[gs.stageIdx];
+  const s   = STAGE_TABLES[key];
 
-  // Sprite del evento (viene de Supabase, es la fuente de verdad)
-  setPlayerSprite(event.sprite || null);
-
-  // Limpiar opciones mientras typea
-  if (optsEl) optsEl.innerHTML = '';
+  if (titleEl) { titleEl.innerText = s.icon + ' EVENTO — ' + s.label; }
+  if (optsEl)    optsEl.innerHTML = '';
   if (subtextEl) subtextEl.innerText = '';
 
-  // Efecto typewriter en el texto
-  if (textEl) {
-    await typewriterEffect(textEl, event.texto || '', 22);
+  setSprite(ev.sprite || null);
+
+  if (textEl) await typewriter(textEl, ev.texto || '');
+
+  if (subtextEl && ev.letra_chica) {
+    subtextEl.innerText = '(' + ev.letra_chica + ')';
   }
 
-  // Letra chica
-  if (subtextEl && event.letra_chica) {
-    subtextEl.innerText = `(${event.letra_chica})`;
-    subtextEl.classList.add('fade-in');
-  }
-
-  // Opciones con glitch en texto si delirio alto
   if (optsEl) {
-    optsEl.innerHTML = '';
-    options.forEach((op, idx) => {
+    const lvl = psychosisLevel();
+    (opts || []).forEach((op, i) => {
       const btn = document.createElement('button');
       btn.className = 'option-btn fade-in';
-      btn.style.animationDelay = `${idx * 0.08}s`;
+      btn.style.animationDelay = (i * 0.08) + 's';
       btn.innerText = op.texto_opcion;
-
-      // Glitch en el texto de las opciones si delirio >= 50
-      if (gameState.delirio >= 50) {
+      if (lvl >= 1) {
         btn.classList.add('glitch-text');
         btn.setAttribute('data-text', op.texto_opcion);
       }
-
-      btn.onclick = () => handleDecision(op, btn);
+      btn.onclick = () => handleChoice(op, btn);
       optsEl.appendChild(btn);
     });
   }
 }
 
-// ── MANEJAR DECISIÓN ─────────────────────────
-function handleDecision(option, clickedBtn) {
-  if (gameState.optionsLocked) return;
-  gameState.optionsLocked = true;
+/* ── DECISIÓN ── */
+function handleChoice(op, btn) {
+  if (gs.optionsLocked) return;
+  gs.optionsLocked = true;
+  if (btn) btn.classList.add('chosen');
 
-  // Feedback visual en botón elegido
-  if (clickedBtn) clickedBtn.classList.add('chosen');
+  gs.plata      += op.efecto_plata      || 0;
+  gs.cordura    += op.efecto_cordura    || 0;
+  gs.delirio    += op.efecto_delirio    || 0;
+  gs.vulnerable += op.efecto_vulnerable || 0;
 
-  // Aplicar efectos
-  gameState.plata      += option.efecto_plata     || 0;
-  gameState.cordura    += option.efecto_cordura   || 0;
-  gameState.delirio    += option.efecto_delirio   || 0;
-  gameState.vulnerable += option.efecto_vulnerable|| 0;
+  gs.cordura    = Math.min(100, Math.max(0,   gs.cordura));
+  gs.delirio    = Math.min(100, Math.max(0,   gs.delirio));
 
-  // Clamp
-  if (gameState.cordura > 100) gameState.cordura = 100;
-  if (gameState.delirio < 0)   gameState.delirio = 0;
-  if (gameState.delirio > 100) gameState.delirio = 100;
+  let rx = null;
+  if ((op.efecto_cordura    || 0) <= -15)  rx = 'player-esquizo.png';
+  else if ((op.efecto_plata || 0) <= -5000) rx = 'player-derrotado.png';
+  else if ((op.efecto_delirio||0) >= 15)   rx = 'player-puerco.png';
+  else if ((op.efecto_cordura||0) >= 10)   rx = 'player-victoria.png';
+  if (rx) reactionSprite(rx);
 
-  // Sprite de reacción temporal según magnitud del efecto
-  let reactionSprite = null;
-  if (option.efecto_cordura <= -15)   reactionSprite = 'player-esquizo.png';
-  else if (option.efecto_plata <= -5000) reactionSprite = 'player-derrotado.png';
-  else if (option.efecto_delirio >= 15)  reactionSprite = 'player-puerco.png';
-  else if (option.efecto_cordura >= 10)  reactionSprite = 'player-victoria.png';
+  if ((op.efecto_cordura||0) <= -15 || (op.efecto_plata||0) <= -5000) screenShake();
 
-  if (reactionSprite) playReactionSprite(reactionSprite);
+  updateUI();
 
-  // Shake si pérdida grande
-  if ((option.efecto_cordura || 0) <= -15 || (option.efecto_plata || 0) <= -5000) {
-    screenShake();
-  }
-
-  updateUIStats();
-
-  // Game Over inmediato si cordura = 0
-  if (gameState.cordura <= 0) {
-    setPlayerSprite(null); // fuerza player-muerto
-    setTimeout(() => {
-      triggerGameOver('Tu mente colapsó por completo ante la realidad país. Te quedaste mirando fijo la pared de tu pieza, perdiendo el lazo con el mundo exterior.');
-    }, 800);
+  if (gs.cordura <= 0 || gs.delirio >= 100) {
+    clearGhosts();
+    setTimeout(() => triggerCollapse(), 700);
     return;
   }
 
-  // Avanzar
-  gameState.eventsInCurrentStage++;
-
+  gs.stageEvents++;
   setTimeout(async () => {
-    if (gameState.eventsInCurrentStage >= 3) {
-      // Etapa completada
-      gameState.eventsInCurrentStage = 0;
-      const completedStage = gameState.stages[gameState.currentStageIndex];
-      gameState.currentStageIndex++;
-
-      if (gameState.currentStageIndex >= gameState.stages.length) {
-        triggerVictory();
-        return;
-      }
-
-      await showStageTransition(completedStage);
+    if (gs.stageEvents >= 3) {
+      gs.stageEvents = 0;
+      const done = gs.stages[gs.stageIdx];
+      gs.stageIdx++;
+      if (gs.stageIdx >= gs.stages.length) { clearGhosts(); triggerVictory(); return; }
+      await showStageTransition(done);
     }
-
-    updateUIStats();
-    loadRandomEvent();
-  }, 900);
+    updateUI();
+    loadEvent();
+  }, 850);
 }
 
-// ── GAME OVER ─────────────────────────────────
-function triggerGameOver(mensaje) {
+/* ── COLAPSO ── */
+function triggerCollapse() {
   const layout = document.getElementById('main-layout');
   if (!layout) return;
+  document.body.classList.add('cursed-mode','cursed-collapse');
 
-  document.body.classList.add('cursed-mode');
-  screenShake();
+  layout.innerHTML = `
+    <div class="collapse-screen">
+      <div id="collapse-sprite-wrap">
+        <img id="collapse-center" src="assets/player-esquizo.png" alt="">
+        <img class="collapse-ghost cg-1" src="assets/player-enojado.png" alt="">
+        <img class="collapse-ghost cg-2" src="assets/player-derrotado.png" alt="">
+        <img class="collapse-ghost cg-3" src="assets/player-muerto.png" alt="">
+        <img class="collapse-ghost cg-4" src="assets/player-corriendo.png" alt="">
+        <img class="collapse-ghost cg-5" src="assets/player-puerco.png" alt="">
+        <img class="collapse-ghost cg-6" src="assets/player-normal.png" alt="">
+      </div>
+      <p class="collapse-text" id="collapse-msg">.</p>
+    </div>`;
 
+  const msgs = ['.','..','...','no','NO','NO PUEDO MÁS','¿DÓNDE ESTOY?','TODO ES DEMASIADO','💀 GAME OVER'];
+  let mi = 0;
+  const msgEl = document.getElementById('collapse-msg');
+  const iv = setInterval(() => {
+    if (!msgEl) { clearInterval(iv); return; }
+    msgEl.innerText = msgs[mi] || '';
+    mi++;
+    if (mi >= msgs.length) { clearInterval(iv); setTimeout(showGameOver, 500); }
+  }, 370);
+}
+
+function showGameOver() {
+  const layout = document.getElementById('main-layout');
+  if (!layout) return;
+  const stageLabel = STAGE_TABLES[gs.stages[Math.min(gs.stageIdx, 3)]].label;
   layout.innerHTML = `
     <div class="end-screen gameover">
       <div class="end-icon">💀</div>
       <h1>GAME OVER</h1>
-      <p>${mensaje}</p>
+      <p>Tu mente colapsó por completo ante la realidad país. Las voces ganaron.</p>
       <div class="stats-final">
-        <p>Plata final: <span>$${gameState.plata.toLocaleString('es-CL')}</span></p>
-        <p>Cordura: <span>${gameState.cordura}/100</span></p>
-        <p>Delirio acumulado: <span>${gameState.delirio}</span></p>
-        <p>Etapa donde caíste: <span>${stageTables[gameState.stages[Math.min(gameState.currentStageIndex, 3)]].label}</span></p>
+        <p>Plata final: <span>$${gs.plata.toLocaleString('es-CL')}</span></p>
+        <p>Cordura: <span>${Math.max(0, gs.cordura)}/100</span></p>
+        <p>Delirio acumulado: <span>${gs.delirio}</span></p>
+        <p>Etapa donde caíste: <span>${stageLabel}</span></p>
       </div>
+      <p style="font-size:0.75em;color:#888;margin-bottom:14px;">📸 Comparte tu desastre</p>
       <button class="btn-restart" onclick="location.reload()">🔄 REINTENTAR DÍA</button>
-    </div>
-  `;
+    </div>`;
 }
 
-// ── VICTORIA ──────────────────────────────────
+/* ── VICTORIA ── */
 function triggerVictory() {
   const layout = document.getElementById('main-layout');
   if (!layout) return;
-
-  document.body.classList.remove('cursed-mode');
-
+  document.body.classList.remove('cursed-mode','cursed-collapse','cursed-critical','cursed-severe');
   layout.innerHTML = `
     <div class="end-screen victoria">
       <div class="end-icon">🏆</div>
       <h1>¡SOBREVIVISTE!</h1>
       <p>Lograste llegar al amanecer del día siguiente manteniendo la cabeza (más o menos) sobre los hombros.</p>
       <div class="stats-final">
-        <p>Saldo final en Cuenta RUT: <span>$${gameState.plata.toLocaleString('es-CL')}</span></p>
-        <p>Cordura restante: <span>${gameState.cordura}/100</span></p>
-        <p>Delirio acumulado: <span>${gameState.delirio}</span></p>
-        <p>Vulnerabilidad: <span>${gameState.vulnerable}</span></p>
+        <p>Saldo final en Cuenta RUT: <span>$${gs.plata.toLocaleString('es-CL')}</span></p>
+        <p>Cordura restante: <span>${gs.cordura}/100</span></p>
+        <p>Delirio acumulado: <span>${gs.delirio}</span></p>
+        <p>Vulnerabilidad: <span>${gs.vulnerable}</span></p>
       </div>
-      <p style="font-size:0.8em; color:#888; margin-bottom:16px;">📸 Toma screenshot de tus stats y compártelo</p>
+      <p style="font-size:0.78em;color:#888;margin-bottom:14px;">📸 Toma screenshot y compártelo</p>
       <button class="btn-restart" onclick="location.reload()">🎮 JUGAR DE NUEVO</button>
-    </div>
-  `;
+    </div>`;
 }
 
-// ── ERROR ─────────────────────────────────────
-function showError(msg) {
-  const textEl = document.getElementById('event-text');
-  if (textEl) textEl.innerText = msg;
+/* ── ERROR ── */
+function showErr(msg) {
+  const el = document.getElementById('event-text');
+  if (el) el.innerText = msg;
 }
