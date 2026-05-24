@@ -1,63 +1,83 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
-    <meta name="monetag" content="9d9d4a022fef0ce04a488ecd556b15ef"> 
-
-    <title>Shileno.exe</title>
-    <link rel="stylesheet" href="style.css?v=2.5">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shileno.exe — Sobrevive el Día</title>
+  <meta name="description" content="Juego de supervivencia e ironía urbana chilena. ¿Puedes sobrevivir un día completo con saldo en la Cuenta RUT?">
+  <link rel="icon" href="favicon.ico">
+  <link rel="stylesheet" href="style.css?v=2.0">
 </head>
 <body>
 
-    <main id="main-layout">
-        
-        <section class="game-sidebar">
-            <div class="stats-panel">
-                <div class="stat-box">💸 Plata: <span id="stat-plata">$0</span></div>
-                <div class="stat-box">🧠 Cordura: <span id="stat-cordura">100</span></div>
-                <div class="stat-box">🌀 Delirio: <span id="stat-delirio">0</span></div>
-                <div class="stat-box">🛡️ Vulnerable: <span id="stat-vulnerable">0</span></div>
+  <!-- Overlay de transición entre etapas -->
+  <div id="stage-transition">
+    <div class="stage-icon" id="stage-icon">🌅</div>
+    <h2 id="stage-title">MAÑANA COMPLETADA</h2>
+    <p id="stage-subtitle">Aguantaste la mañana. Por ahora.</p>
+  </div>
+
+  <!-- Layout principal -->
+  <div id="main-layout">
+
+    <!-- Columna izquierda (stats + personaje) -->
+    <div class="left-col">
+      <div id="stats-container">
+        <div id="game-stage">🌅 MAÑANA (1/3)</div>
+        <div class="stats-grid">
+
+          <div class="stat-item">
+            <span class="stat-label">💰 Cuenta RUT</span>
+            <span class="stat-value" id="stat-plata">$15.000</span>
+          </div>
+
+          <div class="stat-item">
+            <span class="stat-label">🛡️ Vulnerable</span>
+            <span class="stat-value" id="stat-vulnerable">0</span>
+          </div>
+
+          <div class="stat-item">
+            <span class="stat-label">🧠 Cordura</span>
+            <span class="stat-value" id="stat-cordura">100</span>
+            <div class="stat-bar-wrap">
+              <div class="stat-bar cordura" id="bar-cordura" style="width:100%"></div>
             </div>
-            
-            <div class="avatar-container">
-                <img id="player-sprite" src="assets/player-normal.png" alt="Estado del Personaje">
+          </div>
+
+          <div class="stat-item">
+            <span class="stat-label">🌀 Delirio</span>
+            <span class="stat-value" id="stat-delirio">0</span>
+            <div class="stat-bar-wrap">
+              <div class="stat-bar delirio" id="bar-delirio" style="width:0%"></div>
             </div>
-        </section>
+          </div>
 
-        <section class="game-content">
-            <h1 id="event-title" style="display: none;"></h1>
-
-            <div class="card-container">
-                <div class="card-header">
-                    <span id="game-stage">🌅 MAÑANA</span>
-                </div>
-                <div class="card-body">
-                    <p id="event-text">Cargando la paranoia del día...</p>
-                    <p id="event-subtext" class="letra-chica"></p>
-                </div>
-            </div>
-
-            <div id="options-container" class="options-list">
-                </div>
-        </section>
-
-    </main>
-
-    <footer id="monetization-footer">
-        <div class="ads-clean-banner">
-            <p class="ad-placeholder">📺 Espacio publicitario limpio (CPM Pasivo)</p>
         </div>
-        <div class="donation-button-container">
-            <a href="https://chilechallenge.online" target="_blank" class="cafecito-btn">
-                ☕ ¿Sobreviviste al día? Invítale un Súper 8 al dev
-            </a>
-        </div>
-    </footer>
+      </div>
 
-    <script src="script.js?v=2.4"></script>
-    <script>(function(s){s.dataset.zone='11044318',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+      <div id="character-container">
+        <img id="player-sprite" src="assets/player-normal.png" alt="Shileno">
+      </div>
+    </div>
+
+    <!-- Columna derecha (evento + opciones) -->
+    <div id="game-container">
+      <h3 id="event-title">⚡ CARGANDO EVENTO...</h3>
+      <p id="event-text" data-text=""></p>
+      <p id="event-subtext"></p>
+      <div id="options-container"></div>
+    </div>
+
+  </div><!-- /#main-layout -->
+
+  <!-- Footer fijo -->
+  <div id="footer-ads">
+    <a class="btn-donacion" href="#" target="_blank" rel="noopener">
+      ☕ ¿Sobreviviste el día? Invítale un Súper 8 al dev
+    </a>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js?v=2.0"></script>
 </body>
 </html>
