@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Shileno.exe — Sobrevive el Día</title>
   <meta name="description" content="Juego de supervivencia e ironía urbana chilena. ¿Puedes sobrevivir un día completo con saldo en la Cuenta RUT?">
+  <meta name="monetag" content="3a2ec02be261bd3b98d4ee025ede62c8">
   <link rel="icon" href="favicon.ico">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -12,8 +13,8 @@
 
   <!-- ── PANTALLA DE INICIO ── -->
   <div id="splash-screen">
-
     <div id="splash-content">
+
       <div id="splash-sprite-wrap">
         <img id="splash-sprite" src="assets/player-normal.png" alt="Shileno">
       </div>
@@ -32,6 +33,15 @@
           <span class="mode-info">
             <strong>SHILENO.EXE</strong>
             <small>Modo Normal — Un día cualquiera en Santiago</small>
+          </span>
+          <span class="mode-tag available">DISPONIBLE</span>
+        </button>
+
+        <button class="mode-btn" data-mode="ufo" onclick="selectMode(this)">
+          <span class="mode-icon">🛸</span>
+          <span class="mode-info">
+            <strong>UFO-SHILENO.EXE</strong>
+            <small>El Viaje Místico — El folclor te consume</small>
           </span>
           <span class="mode-tag available">DISPONIBLE</span>
         </button>
@@ -63,15 +73,6 @@
           <span class="mode-tag dlc">DLC PRÓXIMO</span>
         </button>
 
-        <button class="mode-btn active-mode" disabled>
-          <span class="mode-icon">🛸</span>
-          <span class="mode-info">
-            <strong>UFO-SHILENO.EXE</strong>
-            <small>El Viaje Místico — El folclor te consume</small>
-          </span>
-          <span class="mode-tag dlc">DLC PRÓXIMO</span>
-        </button>
-
         <button class="mode-btn locked" disabled>
           <span class="mode-icon">🌎</span>
           <span class="mode-info">
@@ -82,8 +83,14 @@
         </button>
       </div>
 
+      <!-- Cafecito SOLO en splash -->
+      <a class="btn-donacion" href="https://cafecito.app" target="_blank" rel="noopener">
+        ☕ Invítale un Súper 8 al dev
+      </a>
+
       <button id="btn-start" onclick="startGame()">▶ INICIAR DÍA</button>
-      <p id="splash-version">v1.0 — chilechallenge.online</p>
+      <p id="splash-version">v1.1 — chilechallenge.online</p>
+
     </div>
   </div>
 
@@ -125,6 +132,7 @@
           </div>
         </div>
       </div>
+
       <div id="character-container">
         <img id="player-sprite" src="assets/player-normal.png" alt="Shileno">
       </div>
@@ -139,14 +147,34 @@
 
   </div>
 
-  <!-- ── FOOTER ── -->
-  <div id="footer-ads">
-    <a class="btn-donacion" href="#" target="_blank" rel="noopener">
-      ☕ ¿Sobreviviste el día? Invítale un Súper 8 al dev
-    </a>
+  <!-- ── BANNER FIJO MONETAG (solo durante el juego) ── -->
+  <div id="banner-ad" style="display:none">
+    <div id="monetag-banner-wrap">
+      <!-- Monetag Banner 320x50 -->
+      <script async data-cfasync="false"
+        src="//alwingulla.com/88/tag.min.js"
+        data-zone="11044318"
+        type="text/javascript"></script>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js"></script>
+
+  <!-- Monetag Popunder — se activa una sola vez al iniciar el juego -->
+  <script>
+    function firePopunder() {
+      // Se llama desde startGame() en script.js
+      // Solo dispara una vez por sesión
+      if (sessionStorage.getItem('popunder_fired')) return;
+      sessionStorage.setItem('popunder_fired', '1');
+      // Monetag popunder zone
+      (function(d,z,s){
+        s.src='https://'+d+'/400/'+z;
+        try{(document.body||document.documentElement).appendChild(s)}catch(e){}
+      })('gizokraijaw.net',11044318,document.createElement('script'));
+    }
+  </script>
+
 </body>
 </html>
