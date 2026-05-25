@@ -8,6 +8,17 @@
   <meta name="monetag" content="3a2ec02be261bd3b98d4ee025ede62c8">
   <link rel="icon" href="favicon.ico">
   <link rel="stylesheet" href="style.css">
+  <script>
+    // Limpiar Service Workers y caché viejos
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(regs) {
+        regs.forEach(function(reg) { reg.unregister(); });
+      });
+      caches.keys().then(function(keys) {
+        keys.forEach(function(key) { caches.delete(key); });
+      });
+    }
+  </script>
 </head>
 <body>
 
