@@ -8,8 +8,9 @@
   <meta name="monetag" content="3a2ec02be261bd3b98d4ee025ede62c8">
   <link rel="icon" href="favicon.ico">
   <link rel="stylesheet" href="style.css">
+
+  <!-- Limpiar Service Workers y caché viejos -->
   <script>
-    // Limpiar Service Workers y caché viejos
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(function(regs) {
         regs.forEach(function(reg) { reg.unregister(); });
@@ -94,7 +95,6 @@
         </button>
       </div>
 
-      <!-- Cafecito SOLO en splash -->
       <a class="btn-donacion" href="https://cafecito.app" target="_blank" rel="noopener">
         ☕ Invítale un Súper 8 al dev
       </a>
@@ -158,18 +158,28 @@
 
   </div>
 
-  <!-- ── BANNER FIJO MONETAG (solo durante el juego) ── -->
+  <!-- ── BANNER AD (fijo abajo, solo durante el juego) ── -->
   <div id="banner-ad" style="display:none">
-    <div id="monetag-banner-wrap">
-      <!-- Monetag Banner 320x50 -->
-      
-    </div>
+    <div id="monetag-banner-wrap"></div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="script.js"></script>
+  <!-- Botón control de audio (oculto por defecto, visible solo en UFO) -->
+  <button id="audio-control" style="display:none" onclick="toggleAudio()">🔊 AUDIO</button>
 
-  <!-- Monetag Popunder — se activa una sola vez al iniciar el juego -->
+  <!-- ── SCRIPTS — orden de carga obligatorio ── -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/psychosis.js"></script>
+  <script src="js/sprites.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/typewriter.js"></script>
+  <script src="js/events.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/splash.js"></script>
+
+  <!-- Monetag Popunder — una vez por sesión al iniciar -->
   <script>
     function firePopunder() {
       if (sessionStorage.getItem('popunder_fired')) return;
@@ -181,14 +191,12 @@
     }
   </script>
 
-  <!-- Monetag In-Page Push (Banner) zone 11054246 -->
+  <!-- Monetag In-Page Push Banner zone 11054246 -->
   <script>
     (function(s){
       s.dataset.zone='11054246';
       s.src='https://nap5k.com/tag.min.js';
-    })([document.documentElement, document.body]
-      .filter(Boolean).pop()
-      .appendChild(document.createElement('script')));
+    })([document.documentElement,document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
   </script>
 
 </body>
