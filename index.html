@@ -164,16 +164,23 @@
   <!-- Monetag Popunder — se activa una sola vez al iniciar el juego -->
   <script>
     function firePopunder() {
-      // Se llama desde startGame() en script.js
-      // Solo dispara una vez por sesión
       if (sessionStorage.getItem('popunder_fired')) return;
       sessionStorage.setItem('popunder_fired', '1');
-      // Monetag popunder zone
       (function(d,z,s){
         s.src='https://'+d+'/400/'+z;
         try{(document.body||document.documentElement).appendChild(s)}catch(e){}
       })('gizokraijaw.net',11044318,document.createElement('script'));
     }
+  </script>
+
+  <!-- Monetag In-Page Push (Banner) zone 11054246 -->
+  <script>
+    (function(s){
+      s.dataset.zone='11054246';
+      s.src='https://nap5k.com/tag.min.js';
+    })([document.documentElement, document.body]
+      .filter(Boolean).pop()
+      .appendChild(document.createElement('script')));
   </script>
 
 </body>
