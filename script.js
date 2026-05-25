@@ -1,5 +1,6 @@
 /* =============================================
-   SHILENO.EXE — script.js v3.0 FINAL
+   SHILENO.EXE — script.js v4.0
+   Soporte multi-modo: normal + ufo
    ============================================= */
 
 const SUPABASE_URL = "https://ofpdeqvoldmhbrhvnaga.supabase.co";
@@ -7,42 +8,114 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const GHOST_SPRITES = [
-  'player-corriendo.png',
-  'player-derrotado.png',
-  'player-enojado.png',
-  'player-esquizo.png',
-  'player-puerco.png',
-  'player-muerto.png'
+  'player-corriendo.png','player-derrotado.png','player-enojado.png',
+  'player-esquizo.png','player-puerco.png','player-muerto.png'
 ];
 
-const STAGE_TABLES = {
-  morning:   { events:'morning_events',   options:'morning_options',   label:'MAÑANA',   icon:'🌅' },
-  midday:    { events:'midday_events',    options:'midday_options',    label:'MEDIODÍA', icon:'☀️' },
-  afternoon: { events:'afternoon_events', options:'afternoon_options', label:'TARDE',    icon:'🌆' },
-  night:     { events:'night_events',     options:'night_options',     label:'NOCHE',    icon:'🌌' }
+// ── CONFIGURACIÓN POR MODO ─────────────────────
+const MODES = {
+  normal: {
+    stages: ['morning','midday','afternoon','night'],
+    tables: {
+      morning:   { events:'morning_events',   options:'morning_options',   label:'MAÑANA',   icon:'🌅' },
+      midday:    { events:'midday_events',    options:'midday_options',    label:'MEDIODÍA', icon:'☀️' },
+      afternoon: { events:'afternoon_events', options:'afternoon_options', label:'TARDE',    icon:'🌆' },
+      night:     { events:'night_events',     options:'night_options',     label:'NOCHE',    icon:'🌌' }
+    },
+    startPlata: 15000,
+    startCordura: 100,
+    startDelirio: 0,
+    bgSplash: null // usa el default del CSS
+  },
+  ufo: {
+    stages: ['morning','midday','afternoon','night'],
+    tables: {
+      morning:   { events:'ufo_morning_events',   options:'ufo_morning_options',   label:'AMANECER', icon:'🌄' },
+      midday:    { events:'ufo_midday_events',    options:'ufo_midday_options',    label:'MEDIODÍA', icon:'🛸' },
+      afternoon: { events:'ufo_afternoon_events', options:'ufo_afternoon_options', label:'TARDE',    icon:'👁️' },
+      night:     { events:'ufo_night_events',     options:'ufo_night_options',     label:'NOCHE',    icon:'🌑' }
+    },
+    startPlata: 15000,
+    startCordura: 80,   // empieza con menos cordura
+    startDelirio: 20,   // empieza con algo de delirio
+    bgSplash: null
+  }
 };
 
+// ── ESTADO ────────────────────────────────────
+let selectedMode = 'normal';
 let gs = {
-  plata: 15000,
-  cordura: 100,
-  delirio: 0,
-  vulnerable: 0,
-  stages: ['morning','midday','afternoon','night'],
-  stageIdx: 0,
-  stageEvents: 0,
+  plata: 15000, cordura: 100, delirio: 0, vulnerable: 0,
+  stageIdx: 0, stageEvents: 0,
   currentSprite: 'player-normal.png',
-  optionsLocked: false,
-  lastPsyLevel: -1,
-  autoShakeTimer: null
+  optionsLocked: false, lastPsyLevel: -1, autoShakeTimer: null,
+  mode: 'normal'
 };
 
-/* ── INIT ── */
-window.addEventListener('DOMContentLoaded', () => {
-  updateUI();
-  loadEvent();
-});
+// ── SPLASH ────────────────────────────────────
+function selectMode(btn) {
+  document.querySelectorAll('.mode-btn:not(.locked)').forEach(b => {
+    b.classList.remove('active-mode');
+    b.style.borderLeftColor = '';
+  });
+  btn.classList.add('active-mode');
+  selectedMode = btn.dataset.mode;
 
-/* ── NIVEL DE PSICOSIS ── */
+  // Cambiar sprite del splash según modo
+  const splashSprite = document.getElementById('splash-sprite');
+  if (splashSprite) {
+    splashSprite.src = selectedMode === 'ufo'
+      ? 'assets/player-esquizo.png'
+      : 'assets/player-normal.png';
+  }
+
+  // Cambiar subtítulo
+  const sub = document.getElementById('splash-sub');
+  if (sub) {
+    sub.innerText = selectedMode === 'ufo'
+      ? 'Ellos ya están aquí. Tú eres el primero.'
+      : 'Sobrevive un día más en Santiago';
+  }
+}
+
+function startGame() {
+  const splash = document.getElementById('splash-screen');
+  const layout = document.getElementById('main-layout');
+
+  // Inicializar estado según modo
+  const cfg = MODES[selectedMode];
+  gs = {
+    plata: cfg.startPlata,
+    cordura: cfg.startCordura,
+    delirio: cfg.startDelirio,
+    vulnerable: 0,
+    stageIdx: 0, stageEvents: 0,
+    currentSprite: selectedMode === 'ufo' ? 'player-esquizo.png' : 'player-normal.png',
+    optionsLocked: false, lastPsyLevel: -1, autoShakeTimer: null,
+    mode: selectedMode
+  };
+
+  // Modo UFO: activar cursed desde el inicio
+  if (selectedMode === 'ufo') {
+    document.body.classList.add('cursed-mode');
+  }
+
+  splash.classList.add('hide');
+  setTimeout(() => {
+    splash.style.display = 'none';
+    layout.style.display = 'flex';
+    updateUI();
+    loadEvent();
+  }, 650);
+}
+
+// ── HELPERS ───────────────────────────────────
+function currentTables() { return MODES[gs.mode].tables; }
+function currentStages()  { return MODES[gs.mode].stages; }
+function currentStageKey(){ return currentStages()[gs.stageIdx]; }
+function currentStageInfo(){ return currentTables()[currentStageKey()]; }
+
+// ── NIVEL PSICOSIS ────────────────────────────
 function psychosisLevel() {
   const d = gs.delirio, c = gs.cordura;
   if (d >= 100 || c <= 0)  return 4;
@@ -53,68 +126,66 @@ function psychosisLevel() {
   return -1;
 }
 
-/* ── UPDATE UI ── */
+// ── UPDATE UI ─────────────────────────────────
 function updateUI() {
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
-  const setClass = (id, cls) => { const el = document.getElementById(id); if (el) el.className = cls; };
+  const cls = (id, c)   => { const el = document.getElementById(id); if (el) el.className = c; };
 
   set('stat-plata',      '$' + gs.plata.toLocaleString('es-CL'));
   set('stat-vulnerable', gs.vulnerable);
   set('stat-cordura',    gs.cordura);
   set('stat-delirio',    gs.delirio);
 
-  setClass('stat-cordura', 'stat-value' + (gs.cordura <= 20 ? ' danger' : gs.cordura <= 40 ? ' warning' : ''));
-  setClass('stat-delirio', 'stat-value' + (gs.delirio >= 70 ? ' danger' : gs.delirio >= 40 ? ' warning' : ''));
+  cls('stat-cordura', 'stat-value' + (gs.cordura <= 20 ? ' danger' : gs.cordura <= 40 ? ' warning' : ''));
+  cls('stat-delirio', 'stat-value' + (gs.delirio >= 70 ? ' danger' : gs.delirio >= 40 ? ' warning' : ''));
 
   const bc = document.getElementById('bar-cordura');
   const bd = document.getElementById('bar-delirio');
   if (bc) { bc.style.width = Math.max(0, gs.cordura) + '%'; bc.className = 'stat-bar cordura' + (gs.cordura <= 40 ? ' low' : ''); }
   if (bd) { bd.style.width = Math.min(100, gs.delirio) + '%'; bd.className = 'stat-bar delirio' + (gs.delirio >= 50 ? ' high' : ''); }
 
-  const stageKey = gs.stages[gs.stageIdx];
-  if (stageKey) {
-    const s = STAGE_TABLES[stageKey];
-    set('game-stage', s.icon + ' ' + s.label + ' (' + (gs.stageEvents + 1) + '/3)');
-  }
+  const s = currentStageInfo();
+  if (s) set('game-stage', s.icon + ' ' + s.label + ' (' + (gs.stageEvents + 1) + '/3)');
 
   updateCursedMode();
-
   const lvl = psychosisLevel();
-  if (lvl !== gs.lastPsyLevel) {
-    gs.lastPsyLevel = lvl;
-    updateGhosts();
-  }
+  if (lvl !== gs.lastPsyLevel) { gs.lastPsyLevel = lvl; updateGhosts(); }
 }
 
-/* ── CURSED MODE ── */
+// ── CURSED MODE ───────────────────────────────
 function updateCursedMode() {
   const b = document.body;
-  b.classList.remove('cursed-mode','cursed-severe','cursed-critical','cursed-collapse');
+  b.classList.remove('cursed-severe','cursed-critical','cursed-collapse');
   const lvl = psychosisLevel();
+  // Modo UFO siempre tiene cursed-mode activo
+  if (gs.mode !== 'ufo') b.classList.remove('cursed-mode');
+
   if (lvl >= 4) b.classList.add('cursed-mode','cursed-collapse');
   else if (lvl >= 3) b.classList.add('cursed-mode','cursed-critical');
   else if (lvl >= 2) b.classList.add('cursed-mode','cursed-severe');
   else if (lvl >= 1) b.classList.add('cursed-mode');
 }
 
-/* ── SPRITE ── */
+// ── SPRITE ────────────────────────────────────
 function setSprite(fromDB) {
   const img = document.getElementById('player-sprite');
   if (!img) return;
-
   let target;
   if (gs.cordura <= 0)     target = 'player-muerto.png';
   else if (fromDB)         { target = fromDB; gs.currentSprite = fromDB; }
   else if (gs.delirio >= 70) target = gs.currentSprite = 'player-esquizo.png';
   else if (gs.cordura <= 30) target = gs.currentSprite = 'player-derrotado.png';
+  else if (gs.mode === 'ufo') target = gs.currentSprite = 'player-esquizo.png';
   else                       target = gs.currentSprite = 'player-normal.png';
 
   const lvl = psychosisLevel();
   img.className = '';
-  if (lvl >= 4) img.classList.add('glitch-active','sprite-level4');
+  if (lvl >= 4)      img.classList.add('glitch-active','sprite-level4');
   else if (lvl >= 3) img.classList.add('glitch-active','sprite-level3');
   else if (lvl >= 2) img.classList.add('glitch-active','sprite-level2');
   else if (lvl >= 1) img.classList.add('sprite-level1');
+  // Modo UFO siempre tiene algo de glow
+  if (gs.mode === 'ufo' && lvl < 1) img.classList.add('sprite-level1');
 
   img.src = 'assets/' + target;
 }
@@ -130,23 +201,25 @@ function reactionSprite(sprite) {
   }, { once: true });
 }
 
-/* ── GHOSTS ── */
+// ── GHOSTS ────────────────────────────────────
 function updateGhosts() {
   clearGhosts();
   const lvl = psychosisLevel();
-  if (lvl < 0) return;
+  // Modo UFO: siempre al menos nivel 0
+  const effectiveLvl = gs.mode === 'ufo' ? Math.max(0, lvl) : lvl;
+  if (effectiveLvl < 0) return;
 
   const container = document.getElementById('character-container');
   if (!container) return;
 
   const cfgs = [
-    { count:1, opacity:0.08, duration:8000,  size:58  },
-    { count:2, opacity:0.16, duration:5000,  size:72  },
-    { count:3, opacity:0.27, duration:3200,  size:84  },
-    { count:5, opacity:0.42, duration:1600,  size:96  },
-    { count:6, opacity:0.65, duration:750,   size:108 }
+    { count:1, opacity:0.09, duration:7500, size:58  },
+    { count:2, opacity:0.17, duration:4800, size:72  },
+    { count:3, opacity:0.28, duration:3000, size:84  },
+    { count:5, opacity:0.43, duration:1500, size:96  },
+    { count:6, opacity:0.66, duration:700,  size:108 }
   ];
-  const cfg = cfgs[lvl];
+  const cfg = cfgs[effectiveLvl];
   const sprites = [...GHOST_SPRITES].sort(() => Math.random() - 0.5);
 
   for (let i = 0; i < cfg.count; i++) {
@@ -154,27 +227,24 @@ function updateGhosts() {
     g.className = 'ghost-sprite' + (cfg.opacity >= 0.4 ? ' ghost-glitch' : '');
     g.src = 'assets/' + sprites[i % sprites.length];
     g.style.height = cfg.size + 'px';
-
-    const angle  = (i / cfg.count) * 280 - 140;
-    const rx = 38 + Math.random() * 22;
-    const ry = 22 + Math.random() * 18;
+    const angle = (i / cfg.count) * 280 - 140;
+    const rx = 38 + Math.random() * 22, ry = 22 + Math.random() * 18;
     g.style.left = (50 + rx * Math.sin(angle * Math.PI / 180)) + '%';
     g.style.top  = (50 - ry * Math.cos(angle * Math.PI / 180)) + '%';
-
     const delay = i * (cfg.duration / cfg.count) * 0.55;
-    g.style.setProperty('--ghost-opacity',   cfg.opacity);
-    g.style.setProperty('--ghost-duration',  cfg.duration + 'ms');
-    g.style.setProperty('--ghost-delay',     delay + 'ms');
-    g.style.setProperty('--drift-x',  ((Math.random()-0.5)*18) + 'px');
-    g.style.setProperty('--drift-y',  ((Math.random()-0.5)*14) + 'px');
+    g.style.setProperty('--ghost-opacity',  cfg.opacity);
+    g.style.setProperty('--ghost-duration', cfg.duration + 'ms');
+    g.style.setProperty('--ghost-delay',    delay + 'ms');
+    g.style.setProperty('--drift-x', ((Math.random()-0.5)*18) + 'px');
+    g.style.setProperty('--drift-y', ((Math.random()-0.5)*14) + 'px');
     g.style.animation = 'ghost-pulse ' + cfg.duration + 'ms ' + delay + 'ms ease-in-out infinite';
-
     container.appendChild(g);
   }
 
-  if (lvl >= 3) {
-    const interval = lvl >= 4 ? 1000 : 2800;
-    gs.autoShakeTimer = setInterval(() => { if (Math.random() < 0.55) screenShake(); }, interval);
+  if (effectiveLvl >= 3) {
+    gs.autoShakeTimer = setInterval(() => {
+      if (Math.random() < 0.55) screenShake();
+    }, effectiveLvl >= 4 ? 1000 : 2800);
   }
 }
 
@@ -183,44 +253,39 @@ function clearGhosts() {
   document.querySelectorAll('.ghost-sprite').forEach(g => g.remove());
 }
 
-/* ── TYPEWRITER ── */
+// ── TYPEWRITER ────────────────────────────────
 function typewriter(el, text) {
   return new Promise(resolve => {
     el.innerText = '';
     el.setAttribute('data-text', text);
     el.classList.add('typing');
     const lvl = psychosisLevel();
-    const speed = Math.max(8, 24 - lvl * 4);
+    const speed = Math.max(8, 22 - lvl * 4);
     let i = 0;
     const iv = setInterval(() => {
       let ch = text[i];
       if (lvl >= 3 && Math.random() < 0.04) {
-        const glitchCh = ['█','▓','?','!','#'][Math.floor(Math.random()*5)];
-        el.innerText += glitchCh;
+        const gc = ['█','▓','?','!','#'][Math.floor(Math.random()*5)];
+        el.innerText += gc;
         setTimeout(() => { el.innerText = el.innerText.slice(0,-1) + text[i]; }, 110);
       } else {
         el.innerText += ch;
       }
       el.setAttribute('data-text', el.innerText);
       i++;
-      if (i >= text.length) {
-        clearInterval(iv);
-        el.classList.remove('typing');
-        resolve();
-      }
+      if (i >= text.length) { clearInterval(iv); el.classList.remove('typing'); resolve(); }
     }, speed);
   });
 }
 
-/* ── SCREEN SHAKE ── */
+// ── SCREEN SHAKE ──────────────────────────────
 function screenShake() {
-  const lvl = psychosisLevel();
-  const cls = lvl >= 3 ? 'shake-hard' : 'shake';
+  const cls = psychosisLevel() >= 3 ? 'shake-hard' : 'shake';
   document.body.classList.add(cls);
-  document.body.addEventListener('animationend', () => document.body.classList.remove(cls), { once:true });
+  document.body.addEventListener('animationend', () => document.body.classList.remove(cls), { once: true });
 }
 
-/* ── STAGE TRANSITION ── */
+// ── TRANSICIÓN ETAPA ──────────────────────────
 function showStageTransition(stageKey) {
   return new Promise(resolve => {
     const ov = document.getElementById('stage-transition');
@@ -231,32 +296,37 @@ function showStageTransition(stageKey) {
       midday:    { title:'MEDIODÍA SOBREVIVIDO', sub:'El sol no te derritió. Aún.',           icon:'☀️' },
       afternoon: { title:'TARDE SUPERADA',       sub:'Falta solo la noche. La más difícil.',  icon:'🌆' }
     };
-    const m = msgs[stageKey] || { title:'ETAPA OK', sub:'...', icon:'⏱️' };
-    document.getElementById('stage-icon').innerText    = lvl >= 2 ? '💀' : m.icon;
-    document.getElementById('stage-title').innerText   = lvl >= 2 ? '¿SIGUES AHÍ?' : m.title;
-    document.getElementById('stage-subtitle').innerText= lvl >= 2 ? 'Las voces se hacen más fuertes...' : m.sub;
+    const ufoMsgs = {
+      morning:   { title:'AMANECER SOBREVIVIDO', sub:'Sigues siendo tú. Por ahora.',          icon:'🌄' },
+      midday:    { title:'MEDIODÍA CRUZADO',     sub:'Las señales se intensifican.',           icon:'🛸' },
+      afternoon: { title:'TARDE SUPERADA',       sub:'Ellos saben que los viste.',             icon:'👁️' }
+    };
+    const msgMap = gs.mode === 'ufo' ? ufoMsgs : msgs;
+    const m = msgMap[stageKey] || { title:'ETAPA OK', sub:'...', icon:'⏱️' };
+
+    document.getElementById('stage-icon').innerText     = lvl >= 2 ? '💀' : m.icon;
+    document.getElementById('stage-title').innerText    = lvl >= 2 ? (gs.mode === 'ufo' ? 'TE ESTÁN BUSCANDO' : '¿SIGUES AHÍ?') : m.title;
+    document.getElementById('stage-subtitle').innerText = lvl >= 2 ? (gs.mode === 'ufo' ? 'No apagues las luces.' : 'Las voces se hacen más fuertes...') : m.sub;
+
     ov.classList.add('active');
-    if (lvl >= 2) ov.classList.add('cursed-overlay');
+    if (lvl >= 2 || gs.mode === 'ufo') ov.classList.add('cursed-overlay');
     setTimeout(() => { ov.classList.remove('active','cursed-overlay'); resolve(); }, 2000);
   });
 }
 
-/* ── CARGAR EVENTO ── */
+// ── CARGAR EVENTO ─────────────────────────────
 async function loadEvent() {
   gs.optionsLocked = false;
-  const key    = gs.stages[gs.stageIdx];
-  const tables = STAGE_TABLES[key];
+  const s = currentStageInfo();
   try {
-    const { data: list, error: le } = await db.from(tables.events).select('id');
+    const { data: list, error: le } = await db.from(s.events).select('id');
     if (le) throw le;
     if (!list || !list.length) { showErr('Sin eventos disponibles.'); return; }
-
     const id = list[Math.floor(Math.random() * list.length)].id;
-    const { data: ev,   error: ee } = await db.from(tables.events).select('*').eq('id', id).single();
+    const { data: ev,   error: ee } = await db.from(s.events).select('*').eq('id', id).single();
     if (ee) throw ee;
-    const { data: opts, error: oe } = await db.from(tables.options).select('*').eq('evento_id', id);
+    const { data: opts, error: oe } = await db.from(s.options).select('*').eq('evento_id', id);
     if (oe) throw oe;
-
     await renderEvent(ev, opts);
   } catch(err) {
     console.error(err);
@@ -264,27 +334,21 @@ async function loadEvent() {
   }
 }
 
-/* ── RENDER EVENTO ── */
+// ── RENDER EVENTO ─────────────────────────────
 async function renderEvent(ev, opts) {
   const titleEl   = document.getElementById('event-title');
   const textEl    = document.getElementById('event-text');
   const subtextEl = document.getElementById('event-subtext');
   const optsEl    = document.getElementById('options-container');
+  const s = currentStageInfo();
 
-  const key = gs.stages[gs.stageIdx];
-  const s   = STAGE_TABLES[key];
-
-  if (titleEl) { titleEl.innerText = s.icon + ' EVENTO — ' + s.label; }
+  if (titleEl) titleEl.innerText = s.icon + ' EVENTO — ' + s.label;
   if (optsEl)    optsEl.innerHTML = '';
   if (subtextEl) subtextEl.innerText = '';
 
   setSprite(ev.sprite || null);
-
   if (textEl) await typewriter(textEl, ev.texto || '');
-
-  if (subtextEl && ev.letra_chica) {
-    subtextEl.innerText = '(' + ev.letra_chica + ')';
-  }
+  if (subtextEl && ev.letra_chica) subtextEl.innerText = '(' + ev.letra_chica + ')';
 
   if (optsEl) {
     const lvl = psychosisLevel();
@@ -293,17 +357,14 @@ async function renderEvent(ev, opts) {
       btn.className = 'option-btn fade-in';
       btn.style.animationDelay = (i * 0.08) + 's';
       btn.innerText = op.texto_opcion;
-      if (lvl >= 1) {
-        btn.classList.add('glitch-text');
-        btn.setAttribute('data-text', op.texto_opcion);
-      }
+      if (lvl >= 1) { btn.classList.add('glitch-text'); btn.setAttribute('data-text', op.texto_opcion); }
       btn.onclick = () => handleChoice(op, btn);
       optsEl.appendChild(btn);
     });
   }
 }
 
-/* ── DECISIÓN ── */
+// ── DECISIÓN ──────────────────────────────────
 function handleChoice(op, btn) {
   if (gs.optionsLocked) return;
   gs.optionsLocked = true;
@@ -314,14 +375,14 @@ function handleChoice(op, btn) {
   gs.delirio    += op.efecto_delirio    || 0;
   gs.vulnerable += op.efecto_vulnerable || 0;
 
-  gs.cordura    = Math.min(100, Math.max(0,   gs.cordura));
-  gs.delirio    = Math.min(100, Math.max(0,   gs.delirio));
+  gs.cordura = Math.min(100, Math.max(0,   gs.cordura));
+  gs.delirio = Math.min(100, Math.max(0,   gs.delirio));
 
   let rx = null;
-  if ((op.efecto_cordura    || 0) <= -15)  rx = 'player-esquizo.png';
-  else if ((op.efecto_plata || 0) <= -5000) rx = 'player-derrotado.png';
-  else if ((op.efecto_delirio||0) >= 15)   rx = 'player-puerco.png';
-  else if ((op.efecto_cordura||0) >= 10)   rx = 'player-victoria.png';
+  if ((op.efecto_cordura    ||0) <= -15)  rx = 'player-esquizo.png';
+  else if ((op.efecto_plata ||0) <= -5000) rx = 'player-derrotado.png';
+  else if ((op.efecto_delirio||0) >= 15)  rx = 'player-puerco.png';
+  else if ((op.efecto_cordura||0) >= 10)  rx = 'player-victoria.png';
   if (rx) reactionSprite(rx);
 
   if ((op.efecto_cordura||0) <= -15 || (op.efecto_plata||0) <= -5000) screenShake();
@@ -338,9 +399,9 @@ function handleChoice(op, btn) {
   setTimeout(async () => {
     if (gs.stageEvents >= 3) {
       gs.stageEvents = 0;
-      const done = gs.stages[gs.stageIdx];
+      const done = currentStages()[gs.stageIdx];
       gs.stageIdx++;
-      if (gs.stageIdx >= gs.stages.length) { clearGhosts(); triggerVictory(); return; }
+      if (gs.stageIdx >= currentStages().length) { clearGhosts(); triggerVictory(); return; }
       await showStageTransition(done);
     }
     updateUI();
@@ -348,7 +409,7 @@ function handleChoice(op, btn) {
   }, 850);
 }
 
-/* ── COLAPSO ── */
+// ── COLAPSO ───────────────────────────────────
 function triggerCollapse() {
   const layout = document.getElementById('main-layout');
   if (!layout) return;
@@ -368,7 +429,10 @@ function triggerCollapse() {
       <p class="collapse-text" id="collapse-msg">.</p>
     </div>`;
 
-  const msgs = ['.','..','...','no','NO','NO PUEDO MÁS','¿DÓNDE ESTOY?','TODO ES DEMASIADO','💀 GAME OVER'];
+  const msgs = gs.mode === 'ufo'
+    ? ['.','..','...','no','NO','TE ENCONTRARON','YA NO ERES TÚ','ELLOS GANARON','👁️ GAME OVER']
+    : ['.','..','...','no','NO','NO PUEDO MÁS','¿DÓNDE ESTOY?','TODO ES DEMASIADO','💀 GAME OVER'];
+
   let mi = 0;
   const msgEl = document.getElementById('collapse-msg');
   const iv = setInterval(() => {
@@ -382,15 +446,20 @@ function triggerCollapse() {
 function showGameOver() {
   const layout = document.getElementById('main-layout');
   if (!layout) return;
-  const stageLabel = STAGE_TABLES[gs.stages[Math.min(gs.stageIdx, 3)]].label;
+  const stageLabel = currentTables()[currentStages()[Math.min(gs.stageIdx, 3)]].label;
+  const icon = gs.mode === 'ufo' ? '👁️' : '💀';
+  const msg  = gs.mode === 'ufo'
+    ? 'Te encontraron. Ya no queda nada de ti en este plano de existencia.'
+    : 'Tu mente colapsó por completo ante la realidad país. Las voces ganaron.';
+
   layout.innerHTML = `
     <div class="end-screen gameover">
-      <div class="end-icon">💀</div>
+      <div class="end-icon">${icon}</div>
       <h1>GAME OVER</h1>
-      <p>Tu mente colapsó por completo ante la realidad país. Las voces ganaron.</p>
+      <p>${msg}</p>
       <div class="stats-final">
         <p>Plata final: <span>$${gs.plata.toLocaleString('es-CL')}</span></p>
-        <p>Cordura: <span>${Math.max(0, gs.cordura)}/100</span></p>
+        <p>Cordura: <span>${Math.max(0,gs.cordura)}/100</span></p>
         <p>Delirio acumulado: <span>${gs.delirio}</span></p>
         <p>Etapa donde caíste: <span>${stageLabel}</span></p>
       </div>
@@ -399,16 +468,22 @@ function showGameOver() {
     </div>`;
 }
 
-/* ── VICTORIA ── */
+// ── VICTORIA ──────────────────────────────────
 function triggerVictory() {
   const layout = document.getElementById('main-layout');
   if (!layout) return;
   document.body.classList.remove('cursed-mode','cursed-collapse','cursed-critical','cursed-severe');
+  const icon = gs.mode === 'ufo' ? '🛸' : '🏆';
+  const title = gs.mode === 'ufo' ? '¡ESCAPASTE!' : '¡SOBREVIVISTE!';
+  const msg   = gs.mode === 'ufo'
+    ? 'Lograste llegar al amanecer sin ser encontrado. Por ahora.'
+    : 'Lograste llegar al amanecer del día siguiente con la cabeza (más o menos) sobre los hombros.';
+
   layout.innerHTML = `
     <div class="end-screen victoria">
-      <div class="end-icon">🏆</div>
-      <h1>¡SOBREVIVISTE!</h1>
-      <p>Lograste llegar al amanecer del día siguiente manteniendo la cabeza (más o menos) sobre los hombros.</p>
+      <div class="end-icon">${icon}</div>
+      <h1>${title}</h1>
+      <p>${msg}</p>
       <div class="stats-final">
         <p>Saldo final en Cuenta RUT: <span>$${gs.plata.toLocaleString('es-CL')}</span></p>
         <p>Cordura restante: <span>${gs.cordura}/100</span></p>
@@ -420,34 +495,8 @@ function triggerVictory() {
     </div>`;
 }
 
-/* ── ERROR ── */
+// ── ERROR ─────────────────────────────────────
 function showErr(msg) {
   const el = document.getElementById('event-text');
   if (el) el.innerText = msg;
-}
-
-/* ── SPLASH SCREEN ── */
-let selectedMode = 'normal';
-
-function selectMode(btn) {
-  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active-mode'));
-  btn.classList.add('active-mode');
-  selectedMode = btn.dataset.mode;
-}
-
-function startGame() {
-  const splash = document.getElementById('splash-screen');
-  const layout = document.getElementById('main-layout');
-  const footer = document.getElementById('footer-ads');
-
-  // Animación de salida
-  splash.classList.add('hide');
-
-  setTimeout(() => {
-    splash.style.display = 'none';
-    layout.style.display = 'flex';
-    if (footer) footer.style.display = 'block';
-    updateUI();
-    loadEvent();
-  }, 650);
 }
