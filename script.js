@@ -100,10 +100,16 @@ function startGame() {
     document.body.classList.add('cursed-mode');
   }
 
+  // Disparar popunder UNA sola vez por sesión
+  if (typeof firePopunder === 'function') firePopunder();
+
   splash.classList.add('hide');
   setTimeout(() => {
     splash.style.display = 'none';
     layout.style.display = 'flex';
+    // Mostrar banner ad
+    const bannerAd = document.getElementById('banner-ad');
+    if (bannerAd) bannerAd.style.display = 'flex';
     updateUI();
     loadEvent();
   }, 650);
