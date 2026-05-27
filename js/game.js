@@ -7,11 +7,11 @@ function handleChoice(op, btn) {
   gs.optionsLocked = true;
   if (btn) btn.classList.add('chosen');
 
-  // Aplicar efectos de stats
-  gs.plata      += op.efecto_plata      || 0;
-  gs.cordura    += op.efecto_cordura    || 0;
-  gs.delirio    += op.efecto_delirio    || 0;
-  gs.vulnerable += op.efecto_vulnerable || 0;
+  // Aplicar efectos con dificultad del día
+  gs.plata      += aplicarDificultad(op.efecto_plata      || 0);
+  gs.cordura    += aplicarDificultad(op.efecto_cordura    || 0);
+  gs.delirio    -= aplicarDificultad(-(op.efecto_delirio  || 0)); // delirio positivo = más difícil
+  gs.vulnerable += aplicarDificultad(op.efecto_vulnerable || 0);
 
   // Clamp
   gs.cordura = Math.min(100, Math.max(0, gs.cordura));
@@ -169,6 +169,10 @@ function showGameOver() {
   const stages   = currentStages();
   const stageLabel = currentTables()[stages[Math.min(gs.stageIdx, stages.length-1)]].label;
 
+  // Game over = reset racha de días
+  const diasCaido = getDiaActual();
+  resetDias();
+
   layout.innerHTML = `
     <div class="end-screen gameover">
       <div class="end-icon">💀</div>
@@ -180,6 +184,8 @@ function showGameOver() {
         <p>Delirio acumulado: <span>${gs.delirio}</span></p>
         <p>Etapa donde caíste: <span>${stageLabel}</span></p>
         ${gs.condiciones.length ? `<p>Consecuencias sin resolver: <span>${gs.condiciones.length}</span></p>` : ''}
+        <p>Días sobrevividos: <span>${diasCaido - 1}</span></p>
+        <p>Racha reiniciada al Día 1</p>
       </div>
       <p style="font-size:0.75em;color:#888;margin-bottom:14px;">📸 Comparte tu desastre</p>
       <button class="btn-restart" onclick="location.reload()">🔄 REINTENTAR DÍA</button>
@@ -192,6 +198,7 @@ function triggerVictory() {
   if (!layout) return;
   document.body.classList.remove('cursed-mode','cursed-collapse','cursed-critical','cursed-severe');
   stopAudio();
+  const diaSiguiente = avanzarDia();
 
   layout.innerHTML = `
     <div class="end-screen victoria">
@@ -204,6 +211,8 @@ function triggerVictory() {
         <p>Delirio acumulado: <span>${gs.delirio}</span></p>
         <p>Vulnerabilidad: <span>${gs.vulnerable}</span></p>
         ${gs.condiciones.length ? `<p>Consecuencias resueltas: <span>${gs.condiciones.length}</span></p>` : ''}
+        <p>Días sobrevividos: <span>${diaSiguiente - 1}</span></p>
+        <p>Dificultad mañana: <span>+${Math.round((diaSiguiente - 1) * 3)}%</span></p>
       </div>
       <p style="font-size:0.78em;color:#888;margin-bottom:8px;">📸 Toma screenshot y compártelo</p>
       <a class="btn-donacion" href="https://cafecito.app" target="_blank" rel="noopener">
