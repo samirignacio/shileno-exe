@@ -192,13 +192,41 @@ function showGameOver() {
     </div>`;
 }
 
-// ── VICTORIA ─────────────────────────────────
+// ── VICTORIA / FIN DE DÍA ────────────────────
 function triggerVictory() {
   const layout = document.getElementById('main-layout');
   if (!layout) return;
-  document.body.classList.remove('cursed-mode','cursed-collapse','cursed-critical','cursed-severe');
   stopAudio();
   const diaSiguiente = avanzarDia();
+
+  // Mostrar transición de día en vez de pantalla de victoria directa
+  showDayTransition(gs, diaSiguiente, (desgaste, diaNuevo) => {
+    // Aplicar desgaste al estado
+    gs.cordura    = desgaste.cordura;
+    gs.delirio    = desgaste.delirio;
+    gs.plata      = desgaste.plata;
+    gs.vulnerable = desgaste.vulnerable;
+    gs.condiciones= desgaste.condiciones;
+    gs.dia        = diaNuevo;
+    gs.stageIdx   = 0;
+    gs.stageEvents= 0;
+    gs.lastPsyLevel = -1;
+
+    // Limpiar efectos visuales del día anterior
+    document.body.classList.remove('cursed-mode','cursed-collapse','cursed-critical','cursed-severe');
+    if (gs.mode === 'ufo') document.body.classList.add('cursed-mode');
+    clearGhosts();
+
+    // Reiniciar audio si UFO
+    if (gs.mode === 'ufo') initAudio('ufo');
+
+    // Actualizar UI y cargar primer evento del nuevo día
+    updateUI();
+    loadEvent();
+  });
+
+  // Esta función ahora solo se usa si se quiere mostrar victoria real (no se llama)
+  return;
 
   layout.innerHTML = `
     <div class="end-screen victoria">
