@@ -983,3 +983,173 @@ body.mode-ufo .end-screen .btn-restart:hover {
 #event-title {
   transition: color 0.3s ease;
 }
+
+/* ═══════════════════════════════════════════
+   DAY TRANSITION — Animación día/noche
+   ═══════════════════════════════════════════ */
+
+#day-transition-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 800;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  overflow: hidden;
+}
+#day-transition-overlay.visible { opacity: 1; }
+
+/* Cielo — usa imágenes reales con crossfade */
+#dt-sky {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  z-index: 0;
+  animation: none;
+}
+
+/* Pseudo-elemento para crossfade suave entre frames */
+#dt-sky::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: inherit;
+  background-size: cover;
+  background-position: center center;
+  opacity: 0;
+  animation: frame-crossfade 0.25s ease forwards;
+}
+
+@keyframes frame-crossfade {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* Overlay oscuro para legibilidad del texto */
+#dt-sky::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+}
+
+/* Ciudad vacía — las imágenes ya tienen la ciudad */
+#dt-city { display: none; }
+
+/* Contenido de hora y texto */
+#dt-content {
+  position: absolute;
+  top: 12%;
+  left: 0; right: 0;
+  text-align: center;
+  z-index: 2;
+  padding: 0 20px;
+}
+
+#dt-hora {
+  font-family: var(--font);
+  font-size: 2.2em;
+  font-weight: bold;
+  color: rgba(255,255,255,0.9);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+  letter-spacing: 4px;
+  animation: text-frame-pop 0.25s ease forwards;
+}
+
+#dt-texto {
+  font-family: var(--font);
+  font-size: 0.85em;
+  color: rgba(255,255,255,0.75);
+  text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+  letter-spacing: 2px;
+  margin-top: 6px;
+  text-transform: uppercase;
+  animation: text-frame-pop 0.25s ease forwards;
+}
+
+@keyframes text-frame-pop {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Stats wrap */
+#dt-stats-wrap {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  max-width: 480px;
+  background: rgba(5,5,15,0.92);
+  border-top: 2px solid var(--rojo);
+  padding: 20px 20px 30px;
+  animation: fadeIn 0.5s ease;
+}
+
+.dt-stats-title {
+  font-family: var(--font);
+  font-size: 0.7em;
+  color: var(--amarillo);
+  letter-spacing: 3px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.dt-stat-row {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font);
+  font-size: 0.82em;
+  color: #ccc;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.dt-stat-row small { color: #888; margin-left: 4px; }
+.dt-stat-row.recover { color: var(--verde); }
+.dt-stat-row.warning { color: var(--amarillo); }
+.dt-stat-row.danger  { color: var(--rojo); }
+
+#dt-sleep-msg {
+  font-family: var(--font);
+  font-size: 0.8em;
+  color: #777;
+  text-align: center;
+  padding: 12px 0;
+  letter-spacing: 1px;
+  animation: blink 1s step-end infinite;
+}
+
+#dt-stats-new {
+  margin-top: 14px;
+  animation: fadeIn 0.5s ease;
+}
+
+#dt-btn-siguiente {
+  width: 100%;
+  margin-top: 16px;
+  background: transparent;
+  border: 2px solid var(--amarillo);
+  color: var(--amarillo);
+  font-family: var(--font);
+  font-size: 1em;
+  font-weight: bold;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  animation: btn-start-pulse 2s ease-in-out infinite;
+}
+#dt-btn-siguiente:hover {
+  background: var(--amarillo);
+  color: #000;
+}
+
+/* Desktop */
+@media (min-width: 768px) {
+  #dt-stats-wrap { border-radius: 0; }
+  #dt-hora { font-size: 3em; }
+}
