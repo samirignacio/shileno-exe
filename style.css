@@ -953,3 +953,33 @@ body.mode-ufo .end-screen .btn-restart:hover {
   border-color: #06b6d4;
   color: #06b6d4;
 }
+
+/* ── TOAST DE CONSECUENCIA ACTIVADA ── */
+.condicion-toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(15,0,30,0.95);
+  border: 1px solid var(--rojo);
+  border-left: 3px solid var(--amarillo);
+  color: var(--amarillo);
+  font-family: var(--font);
+  font-size: 0.72em;
+  padding: 8px 16px;
+  letter-spacing: 1px;
+  z-index: 500;
+  opacity: 0;
+  transition: all 0.35s ease;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.condicion-toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Indicador ⚡ en título de evento condicional */
+#event-title {
+  transition: color 0.3s ease;
+}
