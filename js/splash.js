@@ -44,11 +44,13 @@ function startGame() {
     layout.style.display = 'flex';
     if (bannerAd) bannerAd.style.display = 'flex';
 
-    // Fade in del audio UFO
-    if (selectedMode === 'ufo' && audioPlayer) fadeInAudio();
-
-    updateUI();
-    loadEvent();
+    if (selectedMode === 'ufo') {
+      // Modo UFO usa sistema de historia ramificada
+      ufoInit();
+    } else {
+      updateUI();
+      loadEvent();
+    }
   }, 650);
 }
 
