@@ -1,0 +1,52 @@
+/* cursed.css — Modo cursed, psicosis, efectos de fondo */
+
+body.cursed-mode {
+  background-image: url('../assets/f-cursed-movil.png') !important;
+  animation: bg-pulse 2.5s infinite alternate;
+}
+body.cursed-mode::before { background: rgba(90,0,15,0.60); }
+body.cursed-severe::before   { background: rgba(110,0,18,0.65); }
+body.cursed-critical::before { background: rgba(140,0,20,0.70); animation: overlay-flicker 1.2s infinite; }
+body.cursed-collapse::before { background: rgba(160,0,20,0.78); animation: overlay-flicker 0.4s infinite; }
+
+@keyframes bg-pulse {
+  from { filter: saturate(1) hue-rotate(0deg); }
+  to   { filter: saturate(1.5) hue-rotate(15deg); }
+}
+@keyframes overlay-flicker {
+  0%,100% { opacity:1; } 40% { opacity:0.65; } 60% { opacity:0.85; } 80% { opacity:0.5; }
+}
+
+body.cursed-mode::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px);
+  pointer-events: none;
+  z-index: 1;
+  animation: scanlines 6s linear infinite;
+}
+@keyframes scanlines { from { background-position: 0 0; } to { background-position: 0 80px; } }
+
+body.cursed-severe::before  { background: rgba(80,0,15,0.62); }
+body.cursed-critical::before { background: rgba(120,0,20,0.68); animation: overlay-flicker 1.5s infinite; }
+body.cursed-collapse::before { background: rgba(150,0,20,0.75); animation: overlay-flicker 0.5s infinite; }
+
+body.shake      { animation: shake-soft 0.5s ease !important; }
+body.shake-hard { animation: shake-hard 0.6s ease !important; }
+
+@keyframes shake-soft {
+  0%,100%{transform:translateX(0);} 15%{transform:translateX(-7px) rotate(-0.4deg);} 30%{transform:translateX(7px) rotate(0.4deg);}
+  45%{transform:translateX(-5px);} 60%{transform:translateX(5px);} 75%{transform:translateX(-3px);} 90%{transform:translateX(3px);}
+}
+@keyframes shake-hard {
+  0%,100%{transform:translate(0,0) rotate(0deg);} 10%{transform:translate(-13px,3px) rotate(-1deg);} 20%{transform:translate(13px,-3px) rotate(1deg);}
+  30%{transform:translate(-10px,5px) rotate(-0.5deg);} 40%{transform:translate(10px,-5px) rotate(0.5deg);}
+  50%{transform:translate(-7px,2px);} 60%{transform:translate(9px,-2px) rotate(-1deg);}
+  70%{transform:translate(-9px,4px) rotate(1deg);} 80%{transform:translate(5px,-4px);} 90%{transform:translate(-5px,2px);}
+}
+
+@media (min-width: 768px) {
+  body { background-image: url('../assets/fondo-desktop.png'); }
+  body.cursed-mode { background-image: url('../assets/fondo-cursed.png') !important; }
+}
