@@ -1,0 +1,68 @@
+/* ufo.css — Tema morado cósmico del modo UFO */
+
+body.mode-ufo {
+  --rojo: #7c3aed; --rojo-oscuro: #4c1d95;
+  --amarillo: #06b6d4; --verde: #06b6d4; --morado: #a78bfa;
+  background-image: url('../assets/f-cursed-movil.png') !important;
+}
+body.mode-ufo::before { background: rgba(30,0,60,0.65) !important; }
+body.mode-ufo #stats-container { background: rgba(20,0,40,0.92); border-bottom-color: #7c3aed; }
+body.mode-ufo #game-stage { color: #06b6d4; letter-spacing: 3px; }
+body.mode-ufo .option-btn { border-left-color: #7c3aed; background: rgba(124,58,237,0.05); }
+body.mode-ufo .option-btn:hover { border-left-color: #06b6d4; color: #06b6d4; box-shadow: 0 0 12px rgba(6,182,212,0.3); }
+body.mode-ufo #event-title { color: #a78bfa; border-bottom-color: rgba(124,58,237,0.3); }
+body.mode-ufo #game-container { border-top-color: #7c3aed; background: rgba(10,0,25,0.92); }
+body.mode-ufo .stat-bar.cordura      { background: #06b6d4; }
+body.mode-ufo .stat-bar.cordura.low  { background: #7c3aed; }
+body.mode-ufo .stat-bar.delirio      { background: #a78bfa; }
+body.mode-ufo .option-btn.chosen { border-left-color: #06b6d4; background: rgba(6,182,212,0.08); }
+body.mode-ufo #event-text.typing::after { color: #06b6d4; }
+body.mode-ufo .glitch-active {
+  filter: drop-shadow(2px 0 0 rgba(124,58,237,0.9)) drop-shadow(-2px 0 0 rgba(6,182,212,0.9)) drop-shadow(0 0 14px rgba(167,139,250,0.8)) !important;
+}
+body.mode-ufo.cursed-mode::before { background: rgba(60,0,100,0.68) !important; animation: ufo-overlay-pulse 3s ease-in-out infinite !important; }
+@keyframes ufo-overlay-pulse { 0%,100%{background:rgba(60,0,100,0.68);} 50%{background:rgba(80,0,140,0.75);} }
+body.mode-ufo.cursed-mode::after {
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(6,182,212,0.04) 2px, rgba(6,182,212,0.04) 4px) !important;
+}
+body.mode-ufo #stage-transition { background: #0a0020; }
+body.mode-ufo #stage-transition h2 { color: #06b6d4; }
+body.mode-ufo .end-screen .btn-restart { color: #7c3aed; border-color: #7c3aed; }
+body.mode-ufo .end-screen .btn-restart:hover { background: #7c3aed; color: #fff; }
+
+@media (min-width: 768px) {
+  body.mode-ufo { background-image: url('../assets/fondo-cursed.png') !important; }
+}
+
+/* UFO Story — Prólogo */
+#ufo-prologo { padding: 20px 0; display: flex; flex-direction: column; gap: 16px; }
+.prologo-linea { font-family: var(--font); font-size: 0.95em; color: var(--blanco); line-height: 1.7; opacity: 0; transform: translateY(8px); transition: opacity 0.8s ease, transform 0.8s ease; }
+.prologo-linea.visible { opacity: 1; transform: translateY(0); }
+.prologo-linea.highlight { color: var(--amarillo); font-size: 1.1em; letter-spacing: 2px; }
+
+#btn-prologo {
+  background: transparent; border: 2px solid var(--morado); color: var(--morado);
+  font-family: var(--font); font-size: 1em; font-weight: bold; letter-spacing: 3px;
+  text-transform: uppercase; padding: 14px; cursor: pointer; margin-top: 10px;
+  transition: all 0.2s ease; animation: btn-start-pulse 2s ease-in-out infinite;
+}
+#btn-prologo:hover { background: var(--morado); color: #fff; }
+
+.ruta-toast { border-color: var(--morado) !important; color: var(--morado) !important; font-size: 0.8em !important; padding: 10px 20px !important; }
+
+/* UFO Finales */
+.ufo-final {
+  min-height: 100dvh; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 30px 20px 90px; text-align: center; animation: end-reveal 0.5s ease;
+}
+.ufo-final h1 { font-size: 1.6em; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 14px; }
+.final-esceptico   h1 { color: #94a3b8; }
+.final-contacto    h1 { color: #06b6d4; text-shadow: 0 0 20px rgba(6,182,212,0.6); }
+.final-abduccion   h1 { color: var(--rojo); text-shadow: 0 0 20px rgba(204,51,51,0.6); }
+.final-iniciado    h1 { color: var(--morado); text-shadow: 0 0 20px rgba(168,85,247,0.6); }
+.final-escapado    h1 { color: var(--amarillo); text-shadow: 0 0 20px rgba(245,208,32,0.5); }
+.final-imagen { width: 100%; max-width: 360px; height: 200px; object-fit: cover; margin: 16px 0; border: 1px solid rgba(255,255,255,0.1); filter: grayscale(30%) brightness(0.85); }
+.final-cierre { font-family: var(--font); font-size: 0.85em; color: #aaa; line-height: 2; margin: 16px 0; font-style: italic; letter-spacing: 1px; }
+.ufo-final .btn-restart { width: 100%; background: transparent; border: 2px solid var(--morado); color: var(--morado); font-family: var(--font); font-size: 0.95em; font-weight: bold; padding: 13px 28px; cursor: pointer; letter-spacing: 2px; text-transform: uppercase; transition: all 0.2s ease; margin-top: 8px; }
+.ufo-final .btn-restart:hover { background: var(--morado); color: #fff; }

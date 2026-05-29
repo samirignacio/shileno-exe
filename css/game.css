@@ -1,0 +1,115 @@
+/* game.css — Contenedor de juego, evento, opciones, condiciones */
+
+#game-container {
+  background: var(--gris-card);
+  border-top: 3px solid var(--rojo);
+  padding: 18px 16px 20px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+#event-title {
+  font-size: 0.7em;
+  color: var(--rojo);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(204,51,51,0.25);
+  transition: color 0.3s ease;
+}
+
+#event-text {
+  font-size: 0.95em;
+  line-height: 1.75;
+  color: var(--blanco);
+  min-height: 70px;
+  position: relative;
+}
+#event-text.typing::after {
+  content: '▋';
+  display: inline-block;
+  color: var(--rojo);
+  margin-left: 2px;
+  animation: blink 0.7s step-end infinite;
+}
+
+#event-subtext {
+  font-size: 0.72em;
+  color: #777;
+  text-align: right;
+  margin-top: 6px;
+  font-style: italic;
+}
+
+#options-container {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.option-btn {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-left: 3px solid var(--rojo);
+  color: var(--blanco);
+  font-family: var(--font);
+  font-size: 0.9em;
+  padding: 13px 15px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1.4;
+  position: relative;
+  overflow: hidden;
+}
+.option-btn::before {
+  content: '';
+  position: absolute;
+  left:0; top:0;
+  width:0; height:100%;
+  background: rgba(204,51,51,0.10);
+  transition: width 0.2s ease;
+}
+.option-btn:hover { border-left-color: var(--amarillo); color: var(--amarillo); transform: translateX(4px); }
+.option-btn:hover::before { width:100%; }
+.option-btn:active { transform: translateX(2px) scale(0.98); }
+.option-btn.chosen { border-left-color: var(--verde); background: rgba(34,197,94,0.08); pointer-events:none; opacity:0.65; }
+
+.glitch-text { position: relative; }
+.glitch-text::before, .glitch-text::after {
+  content: attr(data-text);
+  position: absolute;
+  top:0; left:0; width:100%;
+  overflow: hidden;
+}
+.glitch-text::before { color:#ff00cc; animation:gclip1 3s infinite linear; clip-path:polygon(0 15%,100% 15%,100% 35%,0 35%); transform:translateX(-2px); }
+.glitch-text::after  { color:#00ffcc; animation:gclip2 3s infinite linear; clip-path:polygon(0 60%,100% 60%,100% 80%,0 80%); transform:translateX(2px); }
+@keyframes gclip1 { 0%,88%,100%{clip-path:polygon(0 0,0 0,0 0,0 0);} 89%{clip-path:polygon(0 10%,100% 10%,100% 30%,0 30%);transform:translateX(-3px);} 93%{clip-path:polygon(0 50%,100% 50%,100% 65%,0 65%);transform:translateX(3px);} }
+@keyframes gclip2 { 0%,84%,100%{clip-path:polygon(0 0,0 0,0 0,0 0);} 85%{clip-path:polygon(0 55%,100% 55%,100% 70%,0 70%);transform:translateX(3px);} 90%{clip-path:polygon(0 20%,100% 20%,100% 38%,0 38%);transform:translateX(-3px);} }
+
+.condicion-toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(15,0,30,0.95);
+  border: 1px solid var(--rojo);
+  border-left: 3px solid var(--amarillo);
+  color: var(--amarillo);
+  font-family: var(--font);
+  font-size: 0.72em;
+  padding: 8px 16px;
+  letter-spacing: 1px;
+  z-index: 500;
+  opacity: 0;
+  transition: all 0.35s ease;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.condicion-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (min-width: 768px) {
+  #game-container { flex: 1; border-top: none; min-height: 100dvh; }
+}

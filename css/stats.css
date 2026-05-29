@@ -1,0 +1,37 @@
+/* stats.css — Panel de stats, barras, etapa */
+
+#stats-container {
+  background: var(--gris-panel);
+  border-bottom: 2px solid var(--rojo);
+  padding: 10px 14px 8px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+#game-stage {
+  font-size: 0.68em;
+  color: var(--amarillo);
+  letter-spacing: 2px;
+  text-align: center;
+  text-transform: uppercase;
+  padding-bottom: 6px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; }
+.stat-item  { display: flex; flex-direction: column; gap: 2px; }
+.stat-label { font-size: 0.6em; color: #999; letter-spacing: 1px; text-transform: uppercase; }
+.stat-value { font-size: 0.95em; font-weight: bold; color: var(--blanco); transition: color 0.3s; }
+.stat-value.danger  { color: var(--rojo); animation: pulse-danger 0.8s infinite; }
+.stat-value.warning { color: #f97316; }
+
+.stat-bar-wrap { height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; margin-top: 2px; }
+.stat-bar { height: 100%; border-radius: 2px; transition: width 0.5s ease, background-color 0.4s; }
+.stat-bar.cordura      { background: var(--verde); }
+.stat-bar.cordura.low  { background: var(--rojo); }
+.stat-bar.delirio      { background: var(--morado); }
+.stat-bar.delirio.high { background: var(--rojo); animation: bar-flicker 0.4s infinite; }

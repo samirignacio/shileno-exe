@@ -1,0 +1,64 @@
+/* base.css — Variables, reset, body, layout */
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+:root {
+  --rojo: #cc3333;
+  --amarillo: #f5d020;
+  --blanco: #f5f0e8;
+  --gris-panel: rgba(10,10,10,0.85);
+  --gris-card: rgba(15,15,15,0.90);
+  --verde: #22c55e;
+  --morado: #a855f7;
+  --font: 'Share Tech Mono', 'Courier New', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+
+body {
+  font-family: var(--font);
+  color: var(--blanco);
+  min-height: 100dvh;
+  background-color: #0d0d1a;
+  background-image: url('../assets/fondo-mobile.png');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: scroll;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 70px;
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.52);
+  z-index: 0;
+  pointer-events: none;
+  transition: background 0.8s ease;
+}
+
+#main-layout {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 480px;
+}
+
+.fade-in { animation: fadeIn 0.3s ease forwards; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(5px);} to{opacity:1;transform:translateY(0);} }
+@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
+@keyframes pulse-danger { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+@keyframes bar-flicker  { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+@keyframes btn-start-pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(204,51,51,0.4); }
+  50%      { box-shadow: 0 0 0 8px rgba(204,51,51,0); }
+}
+@keyframes end-reveal { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
