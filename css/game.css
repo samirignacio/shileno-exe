@@ -113,3 +113,18 @@
 @media (min-width: 768px) {
   #game-container { flex: 1; border-top: none; min-height: 100dvh; }
 }
+
+/* Hint click para saltar typewriter */
+#event-text {
+  cursor: pointer;
+}
+#event-text.typing::before {
+  content: 'tap para saltar';
+  position: absolute;
+  bottom: -18px;
+  right: 0;
+  font-size: 0.6em;
+  color: rgba(255,255,255,0.25);
+  letter-spacing: 1px;
+  pointer-events: none;
+}
