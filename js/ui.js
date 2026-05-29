@@ -22,7 +22,7 @@ function updateUI() {
   const stageInfo = currentStageInfo();
   if (stageInfo) {
     const diaLabel = gs.dia > 1 ? ` — DÍA ${gs.dia}` : '';
-    set('game-stage', stageInfo.icon + ' ' + stageInfo.label + ' (' + (gs.stageEvents + 1) + '/3)' + diaLabel);
+    set('game-stage', stageInfo.icon + ' ' + stageInfo.label + diaLabel);
   }
 
   updateCursedMode();

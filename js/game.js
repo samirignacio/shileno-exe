@@ -1,3 +1,14 @@
+
+// Fallback de desgaste si dayTransition.js no está disponible
+function calcularDesgaste(gsActual) {
+  return {
+    cordura:    Math.min(100, Math.max(20, gsActual.cordura + 20)),
+    delirio:    Math.max(0, gsActual.delirio - 15),
+    plata:      gsActual.plata,
+    vulnerable: Math.max(0, gsActual.vulnerable - 1),
+    condiciones: gsActual.condiciones.filter(() => Math.random() > 0.5)
+  };
+}
 /* =============================================
    game.js — Lógica principal del juego
    ============================================= */
@@ -46,7 +57,7 @@ function handleChoice(op, btn) {
   gs.stageEvents++;
 
   setTimeout(async () => {
-    if (gs.stageEvents >= 3) {
+    if (gs.stageEvents >= 1) {
       gs.stageEvents = 0;
       const doneKey = currentStageKey();
       gs.stageIdx++;
@@ -199,8 +210,9 @@ function triggerVictory() {
   stopAudio();
   const diaSiguiente = avanzarDia();
 
-  // Mostrar transición de día en vez de pantalla de victoria directa
-  showDayTransition(gs, diaSiguiente, (desgaste, diaNuevo) => {
+  // Mostrar transición de día — fallback si el script no cargó
+  const transitionFn = typeof showDayTransition === 'function' ? showDayTransition : (gs, dia, cb) => cb(calcularDesgaste(gs), dia);
+  transitionFn(gs, diaSiguiente, (desgaste, diaNuevo) => {
     // Aplicar desgaste al estado
     gs.cordura    = desgaste.cordura;
     gs.delirio    = desgaste.delirio;
