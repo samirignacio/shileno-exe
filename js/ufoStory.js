@@ -5,14 +5,16 @@
 
 // ── DÍAS DE LA SEMANA UFO ─────────────────────
 const UFO_DIAS = {
-  lunes:     { tabla_events: 'ufo_morning_events',   tabla_options: 'ufo_morning_options',   label: 'LUNES',     icon: '🌆', eventos_dia: 5 },
-  martes:    { tabla_events: 'ufo_midday_events',    tabla_options: 'ufo_midday_options',    label: 'MARTES',    icon: '🌃', eventos_dia: 5 },
-  miercoles: { tabla_events: 'ufo_afternoon_events', tabla_options: 'ufo_afternoon_options', label: 'MIÉRCOLES', icon: '🌌', eventos_dia: 6 },
-  jueves:    { tabla_events: 'ufo_night_events',     tabla_options: 'ufo_night_options',     label: 'JUEVES',    icon: '👁️', eventos_dia: 6 },
-  viernes:   { tabla_events: 'ufo_night_events',     tabla_options: 'ufo_night_options',     label: 'VIERNES',   icon: '🛸', eventos_dia: 4 },
+  lunes:     { tabla_events: 'ufo_morning_events',   tabla_options: 'ufo_morning_options',   label: 'LUNES',     icon: '🌆', eventos_dia: 7  },
+  martes:    { tabla_events: 'ufo_midday_events',    tabla_options: 'ufo_midday_options',    label: 'MARTES',    icon: '🌃', eventos_dia: 7  },
+  miercoles: { tabla_events: 'ufo_afternoon_events', tabla_options: 'ufo_afternoon_options', label: 'MIÉRCOLES', icon: '🌌', eventos_dia: 8  },
+  jueves:    { tabla_events: 'ufo_night_events',     tabla_options: 'ufo_night_options',     label: 'JUEVES',    icon: '👁️', eventos_dia: 8  },
+  viernes:   { tabla_events: 'ufo_night_events',     tabla_options: 'ufo_night_options',     label: 'VIERNES',   icon: '🛸', eventos_dia: 4  },
+  sabado:    { tabla_events: 'ufo_sabado_events',    tabla_options: 'ufo_sabado_options',    label: 'SÁBADO',    icon: '🌙', eventos_dia: 3  },
+  domingo:   { tabla_events: 'ufo_domingo_events',   tabla_options: 'ufo_domingo_options',   label: 'DOMINGO',   icon: '☀️', eventos_dia: 3  },
 };
 
-const UFO_SEMANA = ['lunes','martes','miercoles','jueves','viernes'];
+const UFO_SEMANA = ['lunes','martes','miercoles','jueves','viernes','sabado','domingo'];
 
 // ── ESTADO UFO ────────────────────────────────
 let ufoState = {
@@ -98,43 +100,41 @@ function ufoDeterminarRuta() {
 async function ufoLoadEvento() {
   gs.optionsLocked = false;
   const diaInfo = ufoDiaInfo();
+  const diaActual = ufoDiaActual();
 
   try {
-    // Traer eventos del día — filtrar por ruta si aplica
-    let query = db.from(diaInfo.tabla_events).select('id, ruta, requiere_condicion');
+    // Traer TODOS los eventos del día ordenados linealmente
+    const { data: list, error: le } = await db
+      .from(diaInfo.tabla_events)
+      .select('id, orden, ruta, requiere_condicion')
+      .order('orden', { ascending: true });
 
-    const { data: list, error: le } = await query;
     if (le) throw le;
     if (!list || !list.length) { showErr('Sin eventos para hoy.'); return; }
 
-    // Filtrar eventos:
-    // 1. No vistos aún
-    // 2. Sin ruta requerida O cuya ruta coincide con la activa
-    // 3. Sin condición requerida O cuya condición está activa
+    // Filtrar por ruta y condición — pero mantener orden lineal
     const disponibles = list.filter(ev => {
+      // Ya vistos: saltar
       if (ufoState.eventosVistos.includes(ev.id)) return false;
-      if (ev.ruta && ev.ruta !== ufoState.rutaFinal && ufoState.rutas[ev.ruta] === 0) return false;
+      // Evento de ruta específica: solo si esa ruta está activa
+      if (ev.ruta) {
+        const rutaActiva = ufoState.rutaFinal || null;
+        const puntosRuta = ufoState.rutas[ev.ruta] || 0;
+        if (rutaActiva && ev.ruta !== rutaActiva && puntosRuta === 0) return false;
+        if (!rutaActiva && puntosRuta === 0) return false;
+      }
+      // Condición requerida: solo si está activa
       if (ev.requiere_condicion && !ufoTieneCondicion(ev.requiere_condicion)) return false;
       return true;
     });
 
     if (!disponibles.length) {
-      // Si no hay más eventos del día avanzar al siguiente
       await ufoAvanzarDia();
       return;
     }
 
-    // Priorizar eventos de la ruta activa
-    const deRuta   = disponibles.filter(ev => ev.ruta && ufoState.rutas[ev.ruta] > 0);
-    const generales = disponibles.filter(ev => !ev.ruta);
-
-    let elegido;
-    if (deRuta.length > 0 && Math.random() < 0.6) {
-      elegido = deRuta[Math.floor(Math.random() * deRuta.length)];
-    } else {
-      const pool = generales.length > 0 ? generales : disponibles;
-      elegido = pool[Math.floor(Math.random() * pool.length)];
-    }
+    // LINEAL: tomar siempre el de menor orden (el siguiente en la historia)
+    const elegido = disponibles[0];
 
     // Marcar como visto
     ufoState.eventosVistos.push(elegido.id);
@@ -231,10 +231,10 @@ function ufoHandleChoice(op, btn) {
 
   updateUI();
 
-  // Colapso mental
+  // Colapso mental — UFO tiene su propio final por colapso
   if (gs.cordura <= 0 || gs.delirio >= 100) {
     clearGhosts();
-    setTimeout(() => triggerCollapse(), 700);
+    setTimeout(() => ufoTriggerColapso(), 700);
     return;
   }
 
@@ -266,7 +266,7 @@ async function ufoAvanzarDia() {
   ufoState.eventosVistos = []; // reset vistos para el nuevo día
   ufoGuardar();
 
-  // Si terminó viernes → mostrar final
+  // Si terminó domingo → mostrar final
   if (ufoState.diaIdx >= UFO_SEMANA.length) {
     ufoTriggerFinal();
     return;
@@ -311,6 +311,8 @@ function ufoTransicionDia(diaCompletado) {
       martes:    { title: 'MARTES COMPLETADO',    sub: 'La weá se está poniendo rara.',              icon: '🌃' },
       miercoles: { title: 'MIÉRCOLES COMPLETADO', sub: 'Ya no hay explicación pa esto.',             icon: '🌌' },
       jueves:    { title: 'JUEVES COMPLETADO',    sub: 'Mañana es viernes. Ya decidiste.',           icon: '👁️' },
+      viernes:   { title: 'VIERNES COMPLETADO',   sub: 'Sobreviviste la noche. Por ahora.',          icon: '🛸' },
+      sabado:    { title: 'SÁBADO COMPLETADO',    sub: 'Queda un día. El último.',                   icon: '🌙' },
     };
 
     const m = msgs[diaCompletado] || { title: 'DÍA COMPLETADO', sub: '...', icon: '⏱️' };
@@ -325,6 +327,72 @@ function ufoTransicionDia(diaCompletado) {
       resolve();
     }, 2200);
   });
+}
+
+// ── FINAL POR COLAPSO MENTAL ─────────────────
+function ufoTriggerColapso() {
+  const layout = document.getElementById('main-layout');
+  if (!layout) return;
+  stopAudio();
+
+  document.body.classList.add('cursed-mode', 'cursed-collapse');
+
+  const dia = ufoDiaActual();
+  const finalesColapso = {
+    lunes: {
+      titulo: 'TE QUEBRASTE EL LUNES',
+      texto: 'Te volviste loco antes de entender nada. Saliste del depa a las 3 AM en pijama y sin celu. Nadie sabe adónde fuiste.',
+      cierre: '"El del 4B llevaba semanas viendo señales antes de desaparecer."
+"A ti te tomó un día."
+"Quizás era pa ti también."'
+    },
+    martes: {
+      titulo: 'NO LLEGASTE AL MIÉRCOLES',
+      texto: 'Las señales te consumieron antes de poder descifrarlas. Te encontraron en el pasillo hablando solo, con el detector EMF en la mano, mirando la puerta del 4B.',
+      cierre: '"Los paramédicos dijeron que estabas bien."
+"Tú sabís que no."
+"Lo que viste no se olvida."'
+    },
+    miercoles: {
+      titulo: 'EL MIÉRCOLES TE GANÓ',
+      texto: 'Demasiadas señales en muy poco tiempo. La mente llegó a su límite. Saliste corriendo del trabajo y no volviste. Te encontraron dos días después sentado en la plaza, mirando el cielo.',
+      cierre: '"No recordabas tu nombre."
+"Pero recordabas el símbolo del del 4B."
+"Lo tenías dibujado en la mano."'
+    },
+    jueves: {
+      titulo: 'TAN CERCA DEL VIERNES',
+      texto: 'Estabas a un día de entender todo. Pero la mente no aguantó. Saliste corriendo hacia el cajón del Maipo sin mochila, sin celu, sin nada. No volviste.',
+      cierre: '"En el cajón encontraron tu sombrero de papel aluminio."
+"Al lado del del 4B."
+"Quizás eso era el plan desde el principio."'
+    },
+    viernes: {
+      titulo: 'LLEGASTE PERO NO RESISTISTE',
+      texto: 'Llegaste hasta el final pero tu mente colapsó justo antes de ver la verdad. A veces el problema no son las respuestas — es que la mente no está lista para recibirlas.',
+      cierre: '"El cajón del Maipo guarda sus secretos."
+"Y ahora tú también eres parte de ellos."'
+    }
+  };
+
+  const fc = finalesColapso[dia] || finalesColapso.viernes;
+
+  layout.innerHTML = `
+    <div class="end-screen ufo-final final-abduccion">
+      <div class="end-icon">🌀</div>
+      <h1>${fc.titulo}</h1>
+      <p>${fc.texto}</p>
+      <div class="stats-final">
+        <p>Plata final: <span>$${gs.plata.toLocaleString('es-CL')}</span></p>
+        <p>Cordura: <span>0/100</span></p>
+        <p>Delirio acumulado: <span>${gs.delirio}</span></p>
+        <p>Día donde colapsaste: <span>${(UFO_DIAS[dia] || {label: dia}).label}</span></p>
+      </div>
+      <p class="final-cierre">${fc.cierre.replace(/
+/g, '<br>')}</p>
+      <p style="font-size:0.75em;color:#888;margin:12px 0;">📸 Comparte tu colapso</p>
+      <button class="btn-restart" onclick="ufoResetear(); location.reload()">🔄 INTENTARLO DE NUEVO</button>
+    </div>`;
 }
 
 // ── FINALES ───────────────────────────────────
