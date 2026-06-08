@@ -8,7 +8,7 @@ const UFO_DIAS = {
   lunes:     { tabla_events: 'ufo_morning_events',   tabla_options: 'ufo_morning_options',   label: 'LUNES',     icon: '🌆', eventos_dia: 7  },
   martes:    { tabla_events: 'ufo_midday_events',    tabla_options: 'ufo_midday_options',    label: 'MARTES',    icon: '🌃', eventos_dia: 7  },
   miercoles: { tabla_events: 'ufo_afternoon_events', tabla_options: 'ufo_afternoon_options', label: 'MIÉRCOLES', icon: '🌌', eventos_dia: 8  },
-  jueves:    { tabla_events: 'ufo_night_events',     tabla_options: 'ufo_night_options',     label: 'JUEVES',    icon: '👁️', eventos_dia: 8  },
+  jueves:    { tabla_events: 'ufo_night_events',     tabla_options: 'ufo_night_options',     label: 'JUEVES',    icon: '👁', eventos_dia: 8  },
   viernes:   { tabla_events: 'ufo_night_events',     tabla_options: 'ufo_night_options',     label: 'VIERNES',   icon: '🛸', eventos_dia: 4  },
   sabado:    { tabla_events: 'ufo_sabado_events',    tabla_options: 'ufo_sabado_options',    label: 'SÁBADO',    icon: '🌙', eventos_dia: 3  },
   domingo:   { tabla_events: 'ufo_domingo_events',   tabla_options: 'ufo_domingo_options',   label: 'DOMINGO',   icon: '☀️', eventos_dia: 3  },
@@ -283,7 +283,7 @@ function ufoMostrarToastRuta() {
   const msgs = {
     esceptico:        '🔍 Ruta confirmada: El Escéptico',
     curioso:          '🤔 Ruta confirmada: El Curioso',
-    creyente:         '👁️ Ruta confirmada: El Creyente',
+    creyente:         '👁 Ruta confirmada: El Creyente',
     ufo_contacto:     '🛸 Ruta confirmada: El Contacto',
     ufo_testigo:      '📹 Ruta confirmada: El Testigo',
     mistico_iniciado: '🕯️ Ruta confirmada: El Iniciado',
@@ -310,7 +310,7 @@ function ufoTransicionDia(diaCompletado) {
       lunes:     { title: 'LUNES COMPLETADO',     sub: 'Una semana rara empieza, hueon.',           icon: '🌆' },
       martes:    { title: 'MARTES COMPLETADO',    sub: 'La weá se está poniendo rara.',              icon: '🌃' },
       miercoles: { title: 'MIÉRCOLES COMPLETADO', sub: 'Ya no hay explicación pa esto.',             icon: '🌌' },
-      jueves:    { title: 'JUEVES COMPLETADO',    sub: 'Mañana es viernes. Ya decidiste.',           icon: '👁️' },
+      jueves:    { title: 'JUEVES COMPLETADO',    sub: 'Mañana es viernes. Ya decidiste.',           icon: '👁' },
       viernes:   { title: 'VIERNES COMPLETADO',   sub: 'Sobreviviste la noche. Por ahora.',          icon: '🛸' },
       sabado:    { title: 'SÁBADO COMPLETADO',    sub: 'Queda un día. El último.',                   icon: '🌙' },
     };
@@ -342,36 +342,27 @@ function ufoTriggerColapso() {
     lunes: {
       titulo: 'TE QUEBRASTE EL LUNES',
       texto: 'Te volviste loco antes de entender nada. Saliste del depa a las 3 AM en pijama y sin celu. Nadie sabe adónde fuiste.',
-      cierre: '"El del 4B llevaba semanas viendo señales antes de desaparecer."
-"A ti te tomó un día."
-"Quizás era pa ti también."'
+      cierre: '"El del 4B llevaba semanas viendo señales antes de desaparecer."\n"A ti te tomó un día."\n"Quizás era pa ti también."'
     },
     martes: {
       titulo: 'NO LLEGASTE AL MIÉRCOLES',
       texto: 'Las señales te consumieron antes de poder descifrarlas. Te encontraron en el pasillo hablando solo, con el detector EMF en la mano, mirando la puerta del 4B.',
-      cierre: '"Los paramédicos dijeron que estabas bien."
-"Tú sabís que no."
-"Lo que viste no se olvida."'
+      cierre: '"Los paramédicos dijeron que estabas bien."\n"Tú sabís que no."\n"Lo que viste no se olvida."'
     },
     miercoles: {
       titulo: 'EL MIÉRCOLES TE GANÓ',
       texto: 'Demasiadas señales en muy poco tiempo. La mente llegó a su límite. Saliste corriendo del trabajo y no volviste. Te encontraron dos días después sentado en la plaza, mirando el cielo.',
-      cierre: '"No recordabas tu nombre."
-"Pero recordabas el símbolo del del 4B."
-"Lo tenías dibujado en la mano."'
+      cierre: '"No recordabas tu nombre."\n"Pero recordabas el símbolo del del 4B."\n"Lo tenías dibujado en la mano."'
     },
     jueves: {
       titulo: 'TAN CERCA DEL VIERNES',
       texto: 'Estabas a un día de entender todo. Pero la mente no aguantó. Saliste corriendo hacia el cajón del Maipo sin mochila, sin celu, sin nada. No volviste.',
-      cierre: '"En el cajón encontraron tu sombrero de papel aluminio."
-"Al lado del del 4B."
-"Quizás eso era el plan desde el principio."'
+      cierre: '"En el cajón encontraron tu sombrero de papel aluminio."\n"Al lado del del 4B."\n"Quizás eso era el plan desde el principio."'
     },
     viernes: {
       titulo: 'LLEGASTE PERO NO RESISTISTE',
       texto: 'Llegaste hasta el final pero tu mente colapsó justo antes de ver la verdad. A veces el problema no son las respuestas — es que la mente no está lista para recibirlas.',
-      cierre: '"El cajón del Maipo guarda sus secretos."
-"Y ahora tú también eres parte de ellos."'
+      cierre: '"El cajón del Maipo guarda sus secretos."\n"Y ahora tú también eres parte de ellos."'
     }
   };
 
@@ -388,8 +379,7 @@ function ufoTriggerColapso() {
         <p>Delirio acumulado: <span>${gs.delirio}</span></p>
         <p>Día donde colapsaste: <span>${(UFO_DIAS[dia] || {label: dia}).label}</span></p>
       </div>
-      <p class="final-cierre">${fc.cierre.replace(/
-/g, '<br>')}</p>
+      <p class="final-cierre">${fc.cierre.replace(/\\n/g, '<br>')}</p>
       <p style="font-size:0.75em;color:#888;margin:12px 0;">📸 Comparte tu colapso</p>
       <button class="btn-restart" onclick="ufoResetear(); location.reload()">🔄 INTENTARLO DE NUEVO</button>
     </div>`;
